@@ -2,6 +2,8 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 from ui.board_widget import BoardWidget
 from model.board import FutoshikiData
+from utils.random_puzzle import generate_puzzle
+from utils.thread_runner import run_in_thread
 import os
 
 class MainWindow(QMainWindow):
@@ -57,7 +59,7 @@ class MainWindow(QMainWindow):
         self.click_box.addItems(["KB", "A*", "Brute force"])
 
         self.random_button = QPushButton("Generate puzzle")
-        # self.random_button.clicked.connect(self.generate_random_puzzle)
+        self.random_button.clicked.connect(self.load_board_from_random_puzzle)
 
         self.solve_button = QPushButton("Solve")
 
@@ -142,8 +144,8 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addLayout(content_layout)
         # ===== FOOTER =====
-        footer = QLabel("The game automatically detects a correct solution.")
-        self.main_layout.addWidget(footer)
+        self.footer = QLabel("The game automatically detects a correct solution.")
+        self.main_layout.addWidget(self.footer)
     
     def refresh_file_list(self):
         input_dir = "input"
@@ -152,7 +154,8 @@ class MainWindow(QMainWindow):
         self.file_box.clear()
         self.file_box.addItems(files)
     
-    def parse_input_file(self, file_path) -> FutoshikiData:
+    @staticmethod
+    def parse_input_file(file_path) -> FutoshikiData:
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = [
                 l.split('#')[0].strip()
@@ -230,4 +233,26 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             print(f"Lỗi load file '{filename}': {e}")
-        
+    
+
+    def load_board_from_random_puzzle(self):
+        size = int(self.size_box.currentText())
+        difficulty = self.diff_box.currentText()
+
+        self.footer.setText("Starting...")
+
+        def on_done(data):
+            self.data = data
+            self.clear_board()
+            self.render_board(self.data)
+            self.footer.setText("Done!")
+
+        self.thread, self.worker = run_in_thread(
+            self, 
+            generate_puzzle,
+            size,
+            difficulty,
+            on_done=on_done
+        )
+
+    
