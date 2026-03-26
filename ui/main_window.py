@@ -9,7 +9,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Futoshiki")
-        self.resize(1200, 900)
+        self.resize(1400, 900)
 
         self.setStyleSheet("""
             QWidget {
@@ -54,7 +54,12 @@ class MainWindow(QMainWindow):
         self.diff_box.addItems(["easy", "medium", "hard"])
 
         self.click_box = QComboBox()
-        self.click_box.addItems(["show selector", "auto fill"])
+        self.click_box.addItems(["KB", "A*", "Brute force"])
+
+        self.random_button = QPushButton("Generate puzzle")
+        # self.random_button.clicked.connect(self.generate_random_puzzle)
+
+        self.solve_button = QPushButton("Solve")
 
         top_layout.addWidget(QLabel("Input File:"))
         top_layout.addWidget(self.file_box)
@@ -62,18 +67,80 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.size_box)
         top_layout.addWidget(QLabel("Difficulty:"))
         top_layout.addWidget(self.diff_box)
-        top_layout.addWidget(QLabel("On click:"))
+        top_layout.addWidget(QLabel("Agents:"))
         top_layout.addWidget(self.click_box)
+        top_layout.addWidget(self.random_button)
+        top_layout.addWidget(self.solve_button)
         top_layout.addStretch()
 
         self.main_layout.addLayout(top_layout)
 
-        # ===== BOARD =====
-        self.board_container = QVBoxLayout()
-        self.main_layout.addLayout(self.board_container)
+        # ===== MAIN CONTENT AREA (BOARD + LOG) =====
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(50) # Khoảng cách giữa Board và Log
+
+        # --- LEFT PANEL (BOARD) ---
+        # Sử dụng stretch=3 để Board chiếm 75% chiều ngang
+        self.left_container = QWidget()
+        self.board_container = QVBoxLayout(self.left_container)
+        self.board_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        content_layout.addWidget(self.left_container, stretch=3)
+
         if self.file_box.count() > 0:
             self.load_board_from_file(self.file_box.currentText())
 
+        # --- RIGHT PANEL (LOG + BUTTONS) ---
+        # Sử dụng stretch=1 để Log chiếm 25% chiều ngang
+        right_panel_container = QWidget()
+        right_panel_layout = QVBoxLayout(right_panel_container)
+        right_panel_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Log Box
+        self.log_box = QTextEdit()
+        self.log_box.setReadOnly(True)
+        self.log_box.setPlaceholderText("Log output...")
+        self.log_box.setFixedSize(500, 300) # Cố định kích thước log theo thiết kế
+        right_panel_layout.addWidget(self.log_box)
+
+        # Control Buttons
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
+        btn_layout.setContentsMargins(0, 20, 0, 0)
+
+        self.undo_button = QPushButton()
+        self.pause_button = QPushButton()
+        self.ff_button = QPushButton()
+
+        style = self.style()
+        self.undo_button.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaSeekBackward))
+        self.pause_button.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaPause))
+        self.ff_button.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaSeekForward))
+        
+        btn_layout.addStretch()
+        for btn in [self.undo_button, self.pause_button, self.ff_button]:
+            btn.setFixedSize(60, 60) # Tăng kích thước nút cho cân đối
+            btn.setIconSize(btn.size() * 0.6)
+
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: white;
+                    border-radius: 10px;
+                }
+            """)
+            btn_layout.addWidget(btn)
+        btn_layout.addStretch()
+
+        right_panel_layout.addLayout(btn_layout)
+        
+        # Bọc Right Panel vào một layout để nó luôn nằm giữa theo chiều dọc
+        right_wrapper = QVBoxLayout()
+        right_wrapper.addStretch()
+        right_wrapper.addWidget(right_panel_container)
+        right_wrapper.addStretch()
+
+        content_layout.addLayout(right_wrapper, stretch=1)
+
+        self.main_layout.addLayout(content_layout)
         # ===== FOOTER =====
         footer = QLabel("The game automatically detects a correct solution.")
         self.main_layout.addWidget(footer)
