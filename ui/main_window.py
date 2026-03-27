@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 from ui.board_widget import BoardWidget
 from model.board import FutoshikiData
+from cnf.build_kb import generate_kb
 from utils.random_puzzle import generate_puzzle
 from utils.thread_runner import run_in_thread
 import os
@@ -62,6 +63,7 @@ class MainWindow(QMainWindow):
         self.random_button.clicked.connect(self.load_board_from_random_puzzle)
 
         self.solve_button = QPushButton("Solve")
+        self.solve_button.clicked.connect(self.debug_print_kb)
 
         top_layout.addWidget(QLabel("Input File:"))
         top_layout.addWidget(self.file_box)
@@ -255,4 +257,33 @@ class MainWindow(QMainWindow):
             on_done=on_done
         )
 
+    def debug_print_kb(self):
+        """In toàn bộ Knowledge Base ra Console để kiểm tra."""
+        if not hasattr(self, 'data') or self.data is None:
+            print("[KB Debug] Không có dữ liệu bàn cờ để tạo KB.")
+            return
+
+        print(f"\n{'='*20} GENERATING KB (N={self.data.n}) {'='*20}")
+        
+        try:
+            kb = generate_kb(self.data)
+            
+            # 2. Lấy danh sách các câu con (conjuncts) từ And()
+            # Trong logic.py của bạn, And lưu các câu con trong self.conjuncts
+            clauses = kb.conjuncts
+            
+            print(f"Tổng số mệnh đề (clauses): {len(clauses)}")
+            print(f"Tổng số biến (symbols): {len(kb.symbols())}")
+            print("-" * 50)
+
+            # 3. In chi tiết từng mệnh đề
+            for i, clause in enumerate(clauses):
+                # .formula() giúp hiển thị ký hiệu logic ~, |, & thay vì tên object
+                print(f"Clause {i:03d}: {clause.formula()}")
+            
+            print(f"{'='*25} END KB DEBUG {'='*25}\n")
+            self.footer.setText("KB đã được in ra Console.")
+
+        except Exception as e:
+            print(f"[KB Debug] Lỗi khi tạo KB: {e}")
     
