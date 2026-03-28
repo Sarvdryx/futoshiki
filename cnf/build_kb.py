@@ -15,7 +15,6 @@ def generate_kb(board_data):
     kb.add(cnf_A3(N))  # Không trùng hàng (bạn có thể viết thêm cnf_A3_col cho cột)
     kb.add(cnf_A6(N))
 
-
     # 2. Thêm các giá trị đã cho sẵn trên bàn cờ
     givens = []
     for i in range(N):

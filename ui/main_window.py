@@ -286,4 +286,3 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             print(f"[KB Debug] Lỗi khi tạo KB: {e}")
-    
