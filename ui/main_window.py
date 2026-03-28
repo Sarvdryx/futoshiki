@@ -5,6 +5,7 @@ from model.board import FutoshikiData
 from cnf.build_kb import generate_kb
 from utils.random_puzzle import generate_puzzle
 from utils.thread_runner import run_in_thread
+from horn_clauses.build_horn_kb import build_kb
 import os
 
 class MainWindow(QMainWindow):
@@ -63,7 +64,9 @@ class MainWindow(QMainWindow):
         self.random_button.clicked.connect(self.load_board_from_random_puzzle)
 
         self.solve_button = QPushButton("Solve")
-        self.solve_button.clicked.connect(self.debug_print_kb)
+        self.solve_button.clicked.connect(
+            lambda: self.debug_print_horn_kb()
+        )
 
         top_layout.addWidget(QLabel("Input File:"))
         top_layout.addWidget(self.file_box)
@@ -286,3 +289,41 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             print(f"[KB Debug] Lỗi khi tạo KB: {e}")
+    
+    import os
+
+    def debug_print_horn_kb(self, filename="output/horn_kb.txt", limit_rules=1000):
+        kb = build_kb(self.data)
+
+        # Tạo thư mục nếu chưa tồn tại
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("========== DEBUG HORN KB ==========\n\n")
+
+            # =====================
+            # FACTS
+            # =====================
+            f.write("FACTS:\n")
+            for fact in sorted(kb.facts, key=lambda x: str(x)):
+                f.write(f"  {fact}\n")
+
+            f.write(f"\nTotal facts: {len(kb.facts)}\n")
+
+            # =====================
+            # RULES
+            # =====================
+            f.write("\nRULES:\n")
+
+            for i, rule in enumerate(kb.rules):
+                if i >= limit_rules:
+                    f.write(f"... ({len(kb.rules) - limit_rules} more rules)\n")
+                    break
+
+                premises = " ^ ".join(str(p) for p in rule.premises)
+                f.write(f"  {premises} => {rule.conclusion}\n")
+
+            f.write(f"\nTotal rules: {len(kb.rules)}\n")
+            f.write("\n==================================\n")
+
+        print(f"✅ KB đã được ghi vào file: {filename}")

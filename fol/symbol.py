@@ -20,3 +20,6 @@ def GreaterV(i, j):
 
 def Less(i, j):
     return Symbol(f"Less_{i}_{j}")
+
+def NotVal(i, j, v):
+    return Symbol(f"NotVal_{i}_{j}_{v}")
