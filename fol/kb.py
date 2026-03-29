@@ -8,3 +8,9 @@ class KnowledgeBase:
 
     def add_rule(self, rule):
         self.rules.append(rule)
+
+    def copy(self):
+        new_kb = KnowledgeBase()
+        new_kb.facts = set(self.facts)   # copy set
+        new_kb.rules = list(self.rules)  # copy list
+        return new_kb

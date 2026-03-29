@@ -7,6 +7,7 @@ from utils.random_puzzle import generate_puzzle
 from utils.thread_runner import run_in_thread
 from horn_clauses.build_horn_kb import build_kb
 from inference.forward_chaining import forward_chaining
+from solver.fc_solver import fc_solve
 import os
 import time
 
@@ -60,14 +61,14 @@ class MainWindow(QMainWindow):
         self.diff_box.addItems(["easy", "medium", "hard"])
 
         self.click_box = QComboBox()
-        self.click_box.addItems(["KB", "A*", "Brute force"])
+        self.click_box.addItems(["Forward Chaining", "A*", "Brute force"])
 
         self.random_button = QPushButton("Generate puzzle")
         self.random_button.clicked.connect(self.load_board_from_random_puzzle)
 
         self.solve_button = QPushButton("Solve")
         self.solve_button.clicked.connect(
-            lambda: self.write_kb_to_file()
+            lambda: self.solve_puzzle()
         )
 
         top_layout.addWidget(QLabel("Input File:"))
@@ -376,3 +377,31 @@ class MainWindow(QMainWindow):
         print(f"⏱️ Build KB: {build_time:.6f}s")
         print(f"⏱️ Forward chaining: {fc_time:.6f}s")
         print(f"⏱️ Total: {(build_time + fc_time):.6f}s")
+
+    def solve_puzzle(self):
+        method = self.click_box.currentText()
+
+        if method == "Forward Chaining":
+            result = fc_solve(self.data)
+
+        # elif method == "A*":
+        #     result = astar_solve(data)
+
+        # elif method == "Brute force":
+        #     result = brute_force_solve(data)
+
+        else:
+            print("Thuật toán không hợp lệ")
+            return
+
+        # Xử lý kết quả chung
+        if result is None:
+            print("Không có lời giải")
+        else:
+            print("Giải thành công!")
+            self.data = result
+            # 2. Reset UI
+            self.clear_board()
+
+            # 3. Render
+            self.render_board(self.data)
