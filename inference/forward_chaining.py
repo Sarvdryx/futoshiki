@@ -1,44 +1,18 @@
-def forward_chaining(kb):
-    facts = kb.facts              # set
-    rules = kb.rules              # list
+def forward_chaining(kb, depth=0):
+    while kb.agenda:
+        p = kb.agenda.pop()
 
-    # =====================
-    # 1. Build index: premise → rules
-    # =====================
-    index = {}  # dict: premise -> list of rules
-
-    for rule in rules:
-        for p in rule.premises:
-            if p not in index:
-                index[p] = []
-            index[p].append(rule)
-
-    # =====================
-    # 2. Agenda (queue các fact mới)
-    # =====================
-    agenda = list(facts)
-
-    # =====================
-    # 3. Forward chaining loop
-    # =====================
-    while agenda:
-        fact = agenda.pop()
-
-        # Nếu fact không nằm trong index → không ảnh hưởng rule nào
-        if fact not in index:
+        if p not in kb.index:
             continue
 
-        # Chỉ xét các rule có chứa fact này
-        for rule in index[fact]:
+        for rule in kb.index[p]:
+            if rule.count <= 0:
+                continue
+            rule.count -= 1
 
-            # Kiểm tra đủ premise chưa
-            if all(p in facts for p in rule.premises):
-
-                conclusion = rule.conclusion
-
-                # Nếu là fact mới → thêm vào KB
-                if conclusion not in facts:
-                    facts.add(conclusion)
-                    agenda.append(conclusion)
+            if rule.count == 0:
+                concl = rule.conclusion
+                if concl not in kb.facts:
+                    kb.add_fact(concl)
 
     return kb
