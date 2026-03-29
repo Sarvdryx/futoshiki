@@ -87,6 +87,7 @@ def build_kb(data):
                 for v1 in range(1, N+1):
                     for v2 in range(1, N+1):
                         if v2 <= v1:
+                            # A -> B
                             kb.add_rule(
                                 Rule(
                                     premises=[LessH(i, j), Val(i, j, v1)],
@@ -94,14 +95,31 @@ def build_kb(data):
                                 )
                             )
 
+                            # B -> A
+                            kb.add_rule(
+                                Rule(
+                                    premises=[LessH(i, j), Val(i, j+1, v2)],
+                                    conclusion=NotVal(i, j, v1)
+                                )
+                            )
+
             if GreaterH(i, j) in kb.facts:
                 for v1 in range(1, N+1):
                     for v2 in range(1, N+1):
                         if v2 >= v1:
+                            # A -> B
                             kb.add_rule(
                                 Rule(
                                     premises=[GreaterH(i, j), Val(i, j, v1)],
                                     conclusion=NotVal(i, j+1, v2)
+                                )
+                            )
+
+                            # B -> A
+                            kb.add_rule(
+                                Rule(
+                                    premises=[GreaterH(i, j), Val(i, j+1, v2)],
+                                    conclusion=NotVal(i, j, v1)
                                 )
                             )
 
@@ -113,24 +131,42 @@ def build_kb(data):
 
             if LessV(i, j) in kb.facts:
                 for v1 in range(1, N+1):
-                    for v2 in range(1, N+1):
-                        if v2 <= v1:
-                            kb.add_rule(
-                                Rule(
-                                    premises=[LessV(i, j), Val(i, j, v1)],
-                                    conclusion=NotVal(i+1, j, v2)
-                                )
+                    for v2 in range(1, v1+1):   # v2 <= v1
+
+                        # A -> B
+                        kb.add_rule(
+                            Rule(
+                                premises=[LessV(i, j), Val(i, j, v1)],
+                                conclusion=NotVal(i+1, j, v2)
                             )
+                        )
+
+                        # B -> A
+                        kb.add_rule(
+                            Rule(
+                                premises=[LessV(i, j), Val(i+1, j, v2)],
+                                conclusion=NotVal(i, j, v1)
+                            )
+                        )
 
             if GreaterV(i, j) in kb.facts:
                 for v1 in range(1, N+1):
-                    for v2 in range(1, N+1):
-                        if v2 >= v1:
-                            kb.add_rule(
-                                Rule(
-                                    premises=[GreaterV(i, j), Val(i, j, v1)],
-                                    conclusion=NotVal(i+1, j, v2)
-                                )
+                    for v2 in range(v1, N+1):   # v2 >= v1
+
+                        # A -> B
+                        kb.add_rule(
+                            Rule(
+                                premises=[GreaterV(i, j), Val(i, j, v1)],
+                                conclusion=NotVal(i+1, j, v2)
                             )
+                        )
+
+                        # B -> A
+                        kb.add_rule(
+                            Rule(
+                                premises=[GreaterV(i, j), Val(i+1, j, v2)],
+                                conclusion=NotVal(i, j, v1)
+                            )
+                        )
 
     return kb

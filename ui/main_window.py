@@ -6,7 +6,9 @@ from cnf.build_kb import generate_kb
 from utils.random_puzzle import generate_puzzle
 from utils.thread_runner import run_in_thread
 from horn_clauses.build_horn_kb import build_kb
+from inference.forward_chaining import forward_chaining
 import os
+import time
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -65,7 +67,7 @@ class MainWindow(QMainWindow):
 
         self.solve_button = QPushButton("Solve")
         self.solve_button.clicked.connect(
-            lambda: self.debug_print_horn_kb()
+            lambda: self.write_kb_to_file()
         )
 
         top_layout.addWidget(QLabel("Input File:"))
@@ -260,6 +262,7 @@ class MainWindow(QMainWindow):
             on_done=on_done
         )
 
+    # ground cnf KB
     def debug_print_kb(self):
         """In toàn bộ Knowledge Base ra Console để kiểm tra."""
         if not hasattr(self, 'data') or self.data is None:
@@ -290,8 +293,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"[KB Debug] Lỗi khi tạo KB: {e}")
     
-    import os
-
+    # ground horn KB
     def debug_print_horn_kb(self, filename="output/horn_kb.txt", limit_rules=1000):
         kb = build_kb(self.data)
 
@@ -327,3 +329,50 @@ class MainWindow(QMainWindow):
             f.write("\n==================================\n")
 
         print(f"✅ KB đã được ghi vào file: {filename}")
+    
+    # forward chaining debug
+    def write_kb_to_file(self, filename="output/horn_kb.txt"):
+        # =====================
+        # ⏱️ Measure build KB
+        # =====================
+        start_build = time.perf_counter()
+
+        kb = build_kb(self.data)
+
+        end_build = time.perf_counter()
+        build_time = end_build - start_build
+
+        # =====================
+        # ⏱️ Measure forward chaining
+        # =====================
+        start_fc = time.perf_counter()
+
+        kb = forward_chaining(kb)
+
+        end_fc = time.perf_counter()
+        fc_time = end_fc - start_fc
+
+        with open(filename, "w", encoding="utf-8") as f:
+
+            # =====================
+            # FACTS
+            # =====================
+            f.write("===== FACTS =====\n")
+            for fact in sorted(kb.facts, key=str):
+                f.write(f"{fact}\n")
+
+            f.write(f"\nTotal facts: {len(kb.facts)}\n")
+
+            # =====================
+            # RULES
+            # =====================
+            f.write("\n===== RULES =====\n")
+            for rule in kb.rules:
+                f.write(f"{rule}\n")
+
+            f.write(f"\nTotal rules: {len(kb.rules)}\n")
+
+        print(f"✅ KB written to {filename}")
+        print(f"⏱️ Build KB: {build_time:.6f}s")
+        print(f"⏱️ Forward chaining: {fc_time:.6f}s")
+        print(f"⏱️ Total: {(build_time + fc_time):.6f}s")

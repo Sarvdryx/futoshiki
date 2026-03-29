@@ -82,6 +82,12 @@ class Not(Sentence):
 
     def symbols(self):
         return self.operand.symbols()
+    
+    def __eq__(self, other):
+        return isinstance(other, Not) and self.operand == other.operand
+
+    def __hash__(self):
+        return hash(("not", self.operand))
 
 
 # =========================
@@ -111,6 +117,11 @@ class And(Sentence):
     def symbols(self):
         return set.union(*[c.symbols() for c in self.conjuncts]) if self.conjuncts else set()
 
+    def __eq__(self, other):
+        return isinstance(other, And) and set(self.conjuncts) == set(other.conjuncts)
+
+    def __hash__(self):
+        return hash(("and", tuple(sorted(self.conjuncts, key=hash))))
 
 # =========================
 # OR
@@ -135,6 +146,11 @@ class Or(Sentence):
     def symbols(self):
         return set.union(*[d.symbols() for d in self.disjuncts])
 
+    def __eq__(self, other):
+        return isinstance(other, Or) and set(self.disjuncts) == set(other.disjuncts)
+
+    def __hash__(self):
+        return hash(("or", tuple(sorted(self.disjuncts, key=hash))))
 
 # =========================
 # IMPLICATION
@@ -157,6 +173,16 @@ class Implication(Sentence):
 
     def symbols(self):
         return self.antecedent.symbols().union(self.consequent.symbols())
+    
+    def __eq__(self, other):
+        return (
+            isinstance(other, Implication)
+            and self.antecedent == other.antecedent
+            and self.consequent == other.consequent
+        )
+
+    def __hash__(self):
+        return hash(("imp", self.antecedent, self.consequent))
 
 
 # =========================

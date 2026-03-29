@@ -1,135 +1,150 @@
-========== DEBUG HORN KB ==========
+===== FACTS =====
+Given_1_2_2
+GreaterV_1_2
+LessH_1_1
+NotVal_1_1_2
+NotVal_1_1_3
+NotVal_1_3_2
+NotVal_2_2_2
+NotVal_2_2_3
+NotVal_3_2_2
+Val_1_2_2
 
-FACTS:
-  Given_1_2_2
-  GreaterV_1_1
-  LessH_1_1
+Total facts: 10
 
-Total facts: 3
+===== RULES =====
+{Given_1_2_2} => Val_1_2_2
+{Val_1_1_1} => NotVal_1_2_1
+{Val_1_1_1} => NotVal_1_3_1
+{Val_1_2_1} => NotVal_1_1_1
+{Val_1_2_1} => NotVal_1_3_1
+{Val_1_3_1} => NotVal_1_1_1
+{Val_1_3_1} => NotVal_1_2_1
+{Val_1_1_2} => NotVal_1_2_2
+{Val_1_1_2} => NotVal_1_3_2
+{Val_1_2_2} => NotVal_1_1_2
+{Val_1_2_2} => NotVal_1_3_2
+{Val_1_3_2} => NotVal_1_1_2
+{Val_1_3_2} => NotVal_1_2_2
+{Val_1_1_3} => NotVal_1_2_3
+{Val_1_1_3} => NotVal_1_3_3
+{Val_1_2_3} => NotVal_1_1_3
+{Val_1_2_3} => NotVal_1_3_3
+{Val_1_3_3} => NotVal_1_1_3
+{Val_1_3_3} => NotVal_1_2_3
+{Val_2_1_1} => NotVal_2_2_1
+{Val_2_1_1} => NotVal_2_3_1
+{Val_2_2_1} => NotVal_2_1_1
+{Val_2_2_1} => NotVal_2_3_1
+{Val_2_3_1} => NotVal_2_1_1
+{Val_2_3_1} => NotVal_2_2_1
+{Val_2_1_2} => NotVal_2_2_2
+{Val_2_1_2} => NotVal_2_3_2
+{Val_2_2_2} => NotVal_2_1_2
+{Val_2_2_2} => NotVal_2_3_2
+{Val_2_3_2} => NotVal_2_1_2
+{Val_2_3_2} => NotVal_2_2_2
+{Val_2_1_3} => NotVal_2_2_3
+{Val_2_1_3} => NotVal_2_3_3
+{Val_2_2_3} => NotVal_2_1_3
+{Val_2_2_3} => NotVal_2_3_3
+{Val_2_3_3} => NotVal_2_1_3
+{Val_2_3_3} => NotVal_2_2_3
+{Val_3_1_1} => NotVal_3_2_1
+{Val_3_1_1} => NotVal_3_3_1
+{Val_3_2_1} => NotVal_3_1_1
+{Val_3_2_1} => NotVal_3_3_1
+{Val_3_3_1} => NotVal_3_1_1
+{Val_3_3_1} => NotVal_3_2_1
+{Val_3_1_2} => NotVal_3_2_2
+{Val_3_1_2} => NotVal_3_3_2
+{Val_3_2_2} => NotVal_3_1_2
+{Val_3_2_2} => NotVal_3_3_2
+{Val_3_3_2} => NotVal_3_1_2
+{Val_3_3_2} => NotVal_3_2_2
+{Val_3_1_3} => NotVal_3_2_3
+{Val_3_1_3} => NotVal_3_3_3
+{Val_3_2_3} => NotVal_3_1_3
+{Val_3_2_3} => NotVal_3_3_3
+{Val_3_3_3} => NotVal_3_1_3
+{Val_3_3_3} => NotVal_3_2_3
+{Val_1_1_1} => NotVal_2_1_1
+{Val_1_1_1} => NotVal_3_1_1
+{Val_2_1_1} => NotVal_1_1_1
+{Val_2_1_1} => NotVal_3_1_1
+{Val_3_1_1} => NotVal_1_1_1
+{Val_3_1_1} => NotVal_2_1_1
+{Val_1_1_2} => NotVal_2_1_2
+{Val_1_1_2} => NotVal_3_1_2
+{Val_2_1_2} => NotVal_1_1_2
+{Val_2_1_2} => NotVal_3_1_2
+{Val_3_1_2} => NotVal_1_1_2
+{Val_3_1_2} => NotVal_2_1_2
+{Val_1_1_3} => NotVal_2_1_3
+{Val_1_1_3} => NotVal_3_1_3
+{Val_2_1_3} => NotVal_1_1_3
+{Val_2_1_3} => NotVal_3_1_3
+{Val_3_1_3} => NotVal_1_1_3
+{Val_3_1_3} => NotVal_2_1_3
+{Val_1_2_1} => NotVal_2_2_1
+{Val_1_2_1} => NotVal_3_2_1
+{Val_2_2_1} => NotVal_1_2_1
+{Val_2_2_1} => NotVal_3_2_1
+{Val_3_2_1} => NotVal_1_2_1
+{Val_3_2_1} => NotVal_2_2_1
+{Val_1_2_2} => NotVal_2_2_2
+{Val_1_2_2} => NotVal_3_2_2
+{Val_2_2_2} => NotVal_1_2_2
+{Val_2_2_2} => NotVal_3_2_2
+{Val_3_2_2} => NotVal_1_2_2
+{Val_3_2_2} => NotVal_2_2_2
+{Val_1_2_3} => NotVal_2_2_3
+{Val_1_2_3} => NotVal_3_2_3
+{Val_2_2_3} => NotVal_1_2_3
+{Val_2_2_3} => NotVal_3_2_3
+{Val_3_2_3} => NotVal_1_2_3
+{Val_3_2_3} => NotVal_2_2_3
+{Val_1_3_1} => NotVal_2_3_1
+{Val_1_3_1} => NotVal_3_3_1
+{Val_2_3_1} => NotVal_1_3_1
+{Val_2_3_1} => NotVal_3_3_1
+{Val_3_3_1} => NotVal_1_3_1
+{Val_3_3_1} => NotVal_2_3_1
+{Val_1_3_2} => NotVal_2_3_2
+{Val_1_3_2} => NotVal_3_3_2
+{Val_2_3_2} => NotVal_1_3_2
+{Val_2_3_2} => NotVal_3_3_2
+{Val_3_3_2} => NotVal_1_3_2
+{Val_3_3_2} => NotVal_2_3_2
+{Val_1_3_3} => NotVal_2_3_3
+{Val_1_3_3} => NotVal_3_3_3
+{Val_2_3_3} => NotVal_1_3_3
+{Val_2_3_3} => NotVal_3_3_3
+{Val_3_3_3} => NotVal_1_3_3
+{Val_3_3_3} => NotVal_2_3_3
+{Val_1_1_1, LessH_1_1} => NotVal_1_2_1
+{LessH_1_1, Val_1_2_1} => NotVal_1_1_1
+{LessH_1_1, Val_1_1_2} => NotVal_1_2_1
+{LessH_1_1, Val_1_2_1} => NotVal_1_1_2
+{LessH_1_1, Val_1_1_2} => NotVal_1_2_2
+{LessH_1_1, Val_1_2_2} => NotVal_1_1_2
+{LessH_1_1, Val_1_1_3} => NotVal_1_2_1
+{LessH_1_1, Val_1_2_1} => NotVal_1_1_3
+{LessH_1_1, Val_1_1_3} => NotVal_1_2_2
+{LessH_1_1, Val_1_2_2} => NotVal_1_1_3
+{LessH_1_1, Val_1_1_3} => NotVal_1_2_3
+{LessH_1_1, Val_1_2_3} => NotVal_1_1_3
+{GreaterV_1_2, Val_1_2_1} => NotVal_2_2_1
+{Val_2_2_1, GreaterV_1_2} => NotVal_1_2_1
+{GreaterV_1_2, Val_1_2_1} => NotVal_2_2_2
+{GreaterV_1_2, Val_2_2_2} => NotVal_1_2_1
+{GreaterV_1_2, Val_1_2_1} => NotVal_2_2_3
+{GreaterV_1_2, Val_2_2_3} => NotVal_1_2_1
+{GreaterV_1_2, Val_1_2_2} => NotVal_2_2_2
+{GreaterV_1_2, Val_2_2_2} => NotVal_1_2_2
+{GreaterV_1_2, Val_1_2_2} => NotVal_2_2_3
+{GreaterV_1_2, Val_2_2_3} => NotVal_1_2_2
+{GreaterV_1_2, Val_1_2_3} => NotVal_2_2_3
+{GreaterV_1_2, Val_2_2_3} => NotVal_1_2_3
 
-RULES:
-  Given_1_2_2 => Val_1_2_2
-  Val_1_1_1 => NotVal_1_2_1
-  Val_1_1_1 => NotVal_1_3_1
-  Val_1_2_1 => NotVal_1_1_1
-  Val_1_2_1 => NotVal_1_3_1
-  Val_1_3_1 => NotVal_1_1_1
-  Val_1_3_1 => NotVal_1_2_1
-  Val_1_1_2 => NotVal_1_2_2
-  Val_1_1_2 => NotVal_1_3_2
-  Val_1_2_2 => NotVal_1_1_2
-  Val_1_2_2 => NotVal_1_3_2
-  Val_1_3_2 => NotVal_1_1_2
-  Val_1_3_2 => NotVal_1_2_2
-  Val_1_1_3 => NotVal_1_2_3
-  Val_1_1_3 => NotVal_1_3_3
-  Val_1_2_3 => NotVal_1_1_3
-  Val_1_2_3 => NotVal_1_3_3
-  Val_1_3_3 => NotVal_1_1_3
-  Val_1_3_3 => NotVal_1_2_3
-  Val_2_1_1 => NotVal_2_2_1
-  Val_2_1_1 => NotVal_2_3_1
-  Val_2_2_1 => NotVal_2_1_1
-  Val_2_2_1 => NotVal_2_3_1
-  Val_2_3_1 => NotVal_2_1_1
-  Val_2_3_1 => NotVal_2_2_1
-  Val_2_1_2 => NotVal_2_2_2
-  Val_2_1_2 => NotVal_2_3_2
-  Val_2_2_2 => NotVal_2_1_2
-  Val_2_2_2 => NotVal_2_3_2
-  Val_2_3_2 => NotVal_2_1_2
-  Val_2_3_2 => NotVal_2_2_2
-  Val_2_1_3 => NotVal_2_2_3
-  Val_2_1_3 => NotVal_2_3_3
-  Val_2_2_3 => NotVal_2_1_3
-  Val_2_2_3 => NotVal_2_3_3
-  Val_2_3_3 => NotVal_2_1_3
-  Val_2_3_3 => NotVal_2_2_3
-  Val_3_1_1 => NotVal_3_2_1
-  Val_3_1_1 => NotVal_3_3_1
-  Val_3_2_1 => NotVal_3_1_1
-  Val_3_2_1 => NotVal_3_3_1
-  Val_3_3_1 => NotVal_3_1_1
-  Val_3_3_1 => NotVal_3_2_1
-  Val_3_1_2 => NotVal_3_2_2
-  Val_3_1_2 => NotVal_3_3_2
-  Val_3_2_2 => NotVal_3_1_2
-  Val_3_2_2 => NotVal_3_3_2
-  Val_3_3_2 => NotVal_3_1_2
-  Val_3_3_2 => NotVal_3_2_2
-  Val_3_1_3 => NotVal_3_2_3
-  Val_3_1_3 => NotVal_3_3_3
-  Val_3_2_3 => NotVal_3_1_3
-  Val_3_2_3 => NotVal_3_3_3
-  Val_3_3_3 => NotVal_3_1_3
-  Val_3_3_3 => NotVal_3_2_3
-  Val_1_1_1 => NotVal_2_1_1
-  Val_1_1_1 => NotVal_3_1_1
-  Val_2_1_1 => NotVal_1_1_1
-  Val_2_1_1 => NotVal_3_1_1
-  Val_3_1_1 => NotVal_1_1_1
-  Val_3_1_1 => NotVal_2_1_1
-  Val_1_1_2 => NotVal_2_1_2
-  Val_1_1_2 => NotVal_3_1_2
-  Val_2_1_2 => NotVal_1_1_2
-  Val_2_1_2 => NotVal_3_1_2
-  Val_3_1_2 => NotVal_1_1_2
-  Val_3_1_2 => NotVal_2_1_2
-  Val_1_1_3 => NotVal_2_1_3
-  Val_1_1_3 => NotVal_3_1_3
-  Val_2_1_3 => NotVal_1_1_3
-  Val_2_1_3 => NotVal_3_1_3
-  Val_3_1_3 => NotVal_1_1_3
-  Val_3_1_3 => NotVal_2_1_3
-  Val_1_2_1 => NotVal_2_2_1
-  Val_1_2_1 => NotVal_3_2_1
-  Val_2_2_1 => NotVal_1_2_1
-  Val_2_2_1 => NotVal_3_2_1
-  Val_3_2_1 => NotVal_1_2_1
-  Val_3_2_1 => NotVal_2_2_1
-  Val_1_2_2 => NotVal_2_2_2
-  Val_1_2_2 => NotVal_3_2_2
-  Val_2_2_2 => NotVal_1_2_2
-  Val_2_2_2 => NotVal_3_2_2
-  Val_3_2_2 => NotVal_1_2_2
-  Val_3_2_2 => NotVal_2_2_2
-  Val_1_2_3 => NotVal_2_2_3
-  Val_1_2_3 => NotVal_3_2_3
-  Val_2_2_3 => NotVal_1_2_3
-  Val_2_2_3 => NotVal_3_2_3
-  Val_3_2_3 => NotVal_1_2_3
-  Val_3_2_3 => NotVal_2_2_3
-  Val_1_3_1 => NotVal_2_3_1
-  Val_1_3_1 => NotVal_3_3_1
-  Val_2_3_1 => NotVal_1_3_1
-  Val_2_3_1 => NotVal_3_3_1
-  Val_3_3_1 => NotVal_1_3_1
-  Val_3_3_1 => NotVal_2_3_1
-  Val_1_3_2 => NotVal_2_3_2
-  Val_1_3_2 => NotVal_3_3_2
-  Val_2_3_2 => NotVal_1_3_2
-  Val_2_3_2 => NotVal_3_3_2
-  Val_3_3_2 => NotVal_1_3_2
-  Val_3_3_2 => NotVal_2_3_2
-  Val_1_3_3 => NotVal_2_3_3
-  Val_1_3_3 => NotVal_3_3_3
-  Val_2_3_3 => NotVal_1_3_3
-  Val_2_3_3 => NotVal_3_3_3
-  Val_3_3_3 => NotVal_1_3_3
-  Val_3_3_3 => NotVal_2_3_3
-  LessH_1_1 ^ Val_1_1_1 => NotVal_1_2_1
-  LessH_1_1 ^ Val_1_1_2 => NotVal_1_2_1
-  LessH_1_1 ^ Val_1_1_2 => NotVal_1_2_2
-  LessH_1_1 ^ Val_1_1_3 => NotVal_1_2_1
-  LessH_1_1 ^ Val_1_1_3 => NotVal_1_2_2
-  LessH_1_1 ^ Val_1_1_3 => NotVal_1_2_3
-  GreaterV_1_1 ^ Val_1_1_1 => NotVal_2_1_1
-  GreaterV_1_1 ^ Val_1_1_1 => NotVal_2_1_2
-  GreaterV_1_1 ^ Val_1_1_1 => NotVal_2_1_3
-  GreaterV_1_1 ^ Val_1_1_2 => NotVal_2_1_2
-  GreaterV_1_1 ^ Val_1_1_2 => NotVal_2_1_3
-  GreaterV_1_1 ^ Val_1_1_3 => NotVal_2_1_3
-
-Total rules: 121
-
-==================================
+Total rules: 133
