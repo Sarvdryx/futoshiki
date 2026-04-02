@@ -7,7 +7,7 @@ from utils.random_puzzle import generate_puzzle
 from utils.thread_runner import run_in_thread
 from horn_clauses.build_horn_kb import build_kb
 from inference.forward_chaining import forward_chaining
-from solver.fc_solver import fc_solve
+from solver.smart_fc_solver import solve_board
 import os
 import time
 
@@ -382,7 +382,7 @@ class MainWindow(QMainWindow):
         method = self.click_box.currentText()
 
         if method == "Forward Chaining":
-            result = fc_solve(self.data)
+            result, runtime = solve_board(self.data)
 
         # elif method == "A*":
         #     result = astar_solve(data)
@@ -399,6 +399,7 @@ class MainWindow(QMainWindow):
             print("Không có lời giải")
         else:
             print("Giải thành công!")
+            print(f"⏱️ Total: {(runtime):.6f}s")
             self.data = result
             # 2. Reset UI
             self.clear_board()
