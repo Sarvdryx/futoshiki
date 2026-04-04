@@ -11,9 +11,9 @@ class BruteForceSolver:
 
         self.steps = 0
 
-    def solve(self) -> FutoshikiData:
+    def solve(self, stop_check=None) -> FutoshikiData:
         start_time = time.time()
-        if self._solve_all():
+        if self._solve_all(stop_check):
             end_time = time.time()
             runtime = end_time - start_time
 
@@ -29,13 +29,17 @@ class BruteForceSolver:
 
     #CORE 
 
-    def _solve_all(self):
+    def _solve_all(self, stop_check):
+        if stop_check and stop_check():
+            return False
         self.steps += 1
 
         for r in range(self.n):
             for c in range(self.n):
                 if self.grid[r][c] == 0:
                     for val in range(1, self.n + 1):
+                        if stop_check and stop_check():
+                            return False
                         self.grid[r][c] = val
 
                         if self._is_valid_partial():

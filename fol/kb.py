@@ -26,14 +26,12 @@ class KnowledgeBase:
         new_kb.facts = set(self.facts)
         new_kb.agenda = list(self.agenda) # copy mutable list
 
-        # 1️⃣ copy rules
         new_kb.rules = []
         for r in self.rules:
             new_rule = Rule(r.premises, r.conclusion)
             new_rule.count = r.count
             new_kb.rules.append(new_rule)
 
-        # 2️⃣ rebuild index trỏ rule mới
         new_kb.index = {}
         for r in new_kb.rules:
             for p in r.premises:

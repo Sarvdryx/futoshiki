@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QTimer
 from ui.board_widget import BoardWidget
 from model.board import FutoshikiData
 from cnf.build_kb import generate_kb
@@ -23,6 +24,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Futoshiki")
         self.resize(1400, 900)
+        self.stop_flag = False
 
         self.setStyleSheet("""
             QWidget {
@@ -67,7 +69,7 @@ class MainWindow(QMainWindow):
         self.diff_box.addItems(["easy", "medium", "hard"])
 
         self.click_box = QComboBox()
-        self.click_box.addItems(["Forward Chaining", "A*", "Backtracking", "Brute Force"])
+        self.click_box.addItems(["Forward Chaining", "A* (Heuristic 1)", "A* (Heuristic 2)", "Backtracking", "Brute Force"])
 
         self.random_button = QPushButton("Generate puzzle")
         self.random_button.clicked.connect(self.load_board_from_random_puzzle)
@@ -76,6 +78,10 @@ class MainWindow(QMainWindow):
         self.solve_button.clicked.connect(
             lambda: self.solve_puzzle()
         )
+
+        self.stop_button = QPushButton("Stop")
+        self.stop_button.setVisible(False)
+        self.stop_button.clicked.connect(self.stop_solving)
 
         top_layout.addWidget(QLabel("Input File:"))
         top_layout.addWidget(self.file_box)
@@ -87,9 +93,22 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.click_box)
         top_layout.addWidget(self.random_button)
         top_layout.addWidget(self.solve_button)
+        top_layout.addWidget(self.stop_button)
         top_layout.addStretch()
 
+        
+
         self.main_layout.addLayout(top_layout)
+        
+
+        self.controls = [
+            self.file_box,
+            self.size_box,
+            self.diff_box,
+            self.click_box,
+            self.random_button,
+            self.solve_button
+        ]
 
         # ===== MAIN CONTENT AREA (BOARD + LOG) =====
         content_layout = QHBoxLayout()
@@ -158,7 +177,7 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addLayout(content_layout)
         # ===== FOOTER =====
-        self.footer = QLabel("The game automatically detects a correct solution.")
+        self.footer = QLabel("Ready")
         self.main_layout.addWidget(self.footer)
     
     def refresh_file_list(self):
@@ -295,7 +314,6 @@ class MainWindow(QMainWindow):
                 print(f"Clause {i:03d}: {clause.formula()}")
             
             print(f"{'='*25} END KB DEBUG {'='*25}\n")
-            self.footer.setText("KB đã được in ra Console.")
 
         except Exception as e:
             print(f"[KB Debug] Lỗi khi tạo KB: {e}")
@@ -335,12 +353,12 @@ class MainWindow(QMainWindow):
             f.write(f"\nTotal rules: {len(kb.rules)}\n")
             f.write("\n==================================\n")
 
-        print(f"✅ KB đã được ghi vào file: {filename}")
+        print(f"KB đã được ghi vào file: {filename}")
     
     # forward chaining debug
     def write_kb_to_file(self, filename="output/horn_kb.txt"):
         # =====================
-        # ⏱️ Measure build KB
+        # Measure build KB
         # =====================
         start_build = time.perf_counter()
 
@@ -350,7 +368,7 @@ class MainWindow(QMainWindow):
         build_time = end_build - start_build
 
         # =====================
-        # ⏱️ Measure forward chaining
+        # Measure forward chaining
         # =====================
         start_fc = time.perf_counter()
 
@@ -379,42 +397,75 @@ class MainWindow(QMainWindow):
 
             f.write(f"\nTotal rules: {len(kb.rules)}\n")
 
-        print(f"✅ KB written to {filename}")
-        print(f"⏱️ Build KB: {build_time:.6f}s")
-        print(f"⏱️ Forward chaining: {fc_time:.6f}s")
-        print(f"⏱️ Total: {(build_time + fc_time):.6f}s")
+        print(f"KB written to {filename}")
+        print(f"Build KB: {build_time:.6f}s")
+        print(f"Forward chaining: {fc_time:.6f}s")
+        print(f"Total: {(build_time + fc_time):.6f}s")
 
+    def solve_logic(self, data, method, progress_callback=None):
+        if self.stop_flag:
+            return None, 0
+        if method == "Forward Chaining":
+            result, runtime = solve_board(data, stop_check=lambda: self.stop_flag)
+
+        elif method == "A* (Heuristic 1)":
+            solver = AStarSolver(Heuristic1(), is_valid)
+            result, runtime = solver.solve(data, stop_check=lambda: self.stop_flag)
+
+        elif method == "A* (Heuristic 2)":
+            solver = AStarSolver(Heuristic2(), is_valid)
+            result, runtime = solver.solve(data, stop_check=lambda: self.stop_flag)
+
+        elif method == "Brute Force":
+            solver = BruteForceSolver(data)
+            result, runtime = solver.solve(stop_check=lambda: self.stop_flag)
+
+        elif method == "Backtracking":
+            solver = BacktrackingSolver(data)
+            result, runtime = solver.solve(stop_check=lambda: self.stop_flag)
+
+        else:
+            raise Exception("Thuật toán không hợp lệ")
+
+        return result, runtime
+    
     def solve_puzzle(self):
         method = self.click_box.currentText()
 
-        if method == "Forward Chaining":
-            result, runtime = solve_board(self.data)
+        self.stop_flag = False
+        self.set_controls_enabled(False)
+        self.stop_button.setVisible(True)
+        self.footer.setText("Solving...")
 
-        elif method == "A*":
-            solver = AStarSolver(Heuristic1(), is_valid)
-            result, runtime = solver.solve(self.data)
+        def on_done(result_tuple):
+            result, runtime = result_tuple
 
-        elif method == "Brute Force":
-            solver = BruteForceSolver(self.data)
-            result, runtime = solver.solve()
+            if result is None:
+                self.footer.setText("No solution")
+            else:
+                self.footer.setText(f"Solve in {runtime:.6f}s")
 
-        elif method == "Backtracking":
-            solver = BacktrackingSolver(self.data)
-            result, runtime = solver.solve()
+                self.data = result
+                self.clear_board()
+                self.render_board(self.data)
 
-        else:
-            print("Thuật toán không hợp lệ")
-            return
+            self.set_controls_enabled(True)
+            self.stop_button.setVisible(False)
+            QTimer.singleShot(3000, lambda: self.footer.setText("Ready"))
 
-        # Xử lý kết quả chung
-        if result is None:
-            print("Không có lời giải")
-        else:
-            print("Giải thành công!")
-            print(f"⏱️ Total: {(runtime):.6f}s")
-            self.data = result
-            # 2. Reset UI
-            self.clear_board()
+        self.thread, self.worker = run_in_thread(
+            self,
+            self.solve_logic,
+            self.data,
+            method,
+            on_done=on_done
+        )
 
-            # 3. Render
-            self.render_board(self.data)
+    def set_controls_enabled(self, enabled: bool):
+        for w in self.controls:
+            w.setEnabled(enabled)
+
+    def stop_solving(self):
+        self.stop_flag = True
+        self.stop_button.setVisible(False)
+        self.footer.setText("Ready")

@@ -13,7 +13,10 @@ class Worker(QObject):
     def run(self):
         try:
             # truyền callback progress vào function
-            result = self.func(*self.args, progress_callback=self.progress.emit)
+            result = self.func(
+                *self.args,
+                progress_callback=self.progress.emit
+            )
             self.finished.emit(result)
         except Exception as e:
             self.error.emit(str(e))

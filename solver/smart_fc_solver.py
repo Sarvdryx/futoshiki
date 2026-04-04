@@ -234,7 +234,9 @@ def debug_forward_checking(board, var, value):
     
     print("======================")
 
-def backtracking(board):
+def backtracking(board, stop_check):
+    if stop_check and stop_check():
+        return None
     if(board.is_complete()):
         return board
     
@@ -245,6 +247,8 @@ def backtracking(board):
     
     domain_values = list(board.domains[var])
     for value in domain_values:
+        if stop_check and stop_check():
+            return None
         original_grid = copy.deepcopy(board.grid)
         original_domains = {k: list(v) for k, v in board.domains.items()}
 
@@ -256,7 +260,7 @@ def backtracking(board):
         if result:  # Forward checking succeeded
             # print(f"Forward checking passed for {var} = {value}")
             # Recursive call
-            new_result = backtracking(board)
+            new_result = backtracking(board, stop_check)   
             if new_result:  # Solution found
                 return new_result
             
@@ -266,15 +270,15 @@ def backtracking(board):
     # print(f"No valid value found for {var}, backtracking...")
     return None
 
-def solve_board(data: FutoshikiData):
+def solve_board(data: FutoshikiData, stop_check=None):
 
     board = Board(data)
     start_time = time.time()
     # board.domains = board.reset_domains()  # Initialize domains once
-    solved_board = backtracking(board)
+    solved_board = backtracking(board, stop_check)
     runtime = time.time() - start_time
 
     if solved_board:
         data.grid = solved_board.grid
         return solved_board, runtime
-    return None, -1 # Replace with return values
+    return None, runtime

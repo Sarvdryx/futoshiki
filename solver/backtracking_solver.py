@@ -13,10 +13,10 @@ class BacktrackingSolver:
         self.steps = 0
         self.backtracks = 0
 
-    def solve(self) -> FutoshikiData:
+    def solve(self, stop_check=None) -> FutoshikiData:
         start_time = time.time()
 
-        if self._backtrack():
+        if self._backtrack(stop_check):
             end_time = time.time()
             runtime = end_time - start_time   
 
@@ -33,7 +33,9 @@ class BacktrackingSolver:
         return None, runtime
     # ================= CORE =================
 
-    def _backtrack(self):
+    def _backtrack(self, stop_check):
+        if stop_check and stop_check():
+            return False
         self.steps += 1
 
         cell = self._find_empty()
@@ -43,10 +45,12 @@ class BacktrackingSolver:
         r, c = cell
 
         for val in range(1, self.n + 1):
+            if stop_check and stop_check():
+                return False
             if self._is_valid(r, c, val):
                 self.grid[r][c] = val
 
-                if self._backtrack():
+                if self._backtrack(stop_check):
                     return True
 
                 self.grid[r][c] = 0
