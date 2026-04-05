@@ -1,0 +1,184 @@
+\setcounter{secnumdepth}{3}
+\titlespacing*{\chapter}{0pt}{-0.1cm}{1cm}
+\titleformat{\chapter}[display]
+  {\bfseries\LARGE}  
+  {Phần~\thechapter}{0pt}{\raggedright}
+
+\chapter{Biểu diễn bài toán bằng Logic vị từ bậc nhất (FOL)}
+
+\section{Giới thiệu}
+
+Futoshiki là một trò chơi giải đố logic được thực hiện trên một bảng kích thước $N \times N$. Nhiệm vụ của người chơi là điền các số từ $1$ đến $N$ vào các ô trống sao cho tất cả các ràng buộc của bài toán đều được thỏa mãn. Nhờ cấu trúc rõ ràng và các luật chơi mang tính logic chặt chẽ, Futoshiki thường được sử dụng như một ví dụ điển hình để áp dụng Lôgic Vị từ Bậc Nhất (FOL), vì các ràng buộc này có thể biểu diễn khá trực quan thông qua các mệnh đề có lượng từ.
+
+Trong phần này, báo cáo sẽ trình bày cách xây dựng hệ tiên đề FOL cho bài toán Futoshiki kích thước $4 \times 4$. Nội dung bao gồm việc xác định từ vựng sử dụng, xây dựng các tiên đề tương ứng với luật chơi, đồng thời thực hiện Skolem hóa và chuyển đổi một số tiên đề tiêu biểu sang dạng chuẩn CNF.
+
+\section{Từ vựng (Vocabulary)}
+
+\subsection{Miền giá trị}
+
+\begin{itemize}
+    \item Chỉ số hàng, cột: $i, j \in \{1,2,3,4\}$
+    \item Giá trị ô: $v \in \{1,2,3,4\}$
+\end{itemize}
+
+\subsection{Bảng vị từ}
+
+\begin{longtable}{|c|c|p{8cm}|}
+\hline
+\textbf{Vị từ} & \textbf{Bậc} & \textbf{Ý nghĩa} \\
+\hline
+$Val(i,j,v)$ & 3 & Ô $(i,j)$ được gán giá trị $v$ \\
+\hline
+$Given(i,j,v)$ & 3 & Ô $(i,j)$ có giá trị cho sẵn $v$ \\
+\hline
+$LessH(i,j)$ & 2 & Ràng buộc $<$ ngang giữa $(i,j)$ và $(i,j+1)$ \\
+\hline
+$GreaterH(i,j)$ & 2 & Ràng buộc $>$ ngang giữa $(i,j)$ và $(i,j+1)$ \\
+\hline
+$LessV(i,j)$ & 2 & Ràng buộc $<$ dọc giữa $(i,j)$ và $(i+1,j)$ \\
+\hline
+$GreaterV(i,j)$ & 2 & Ràng buộc $>$ dọc giữa $(i,j)$ và $(i+1,j)$ \\
+\hline
+$Less(v1,v2)$ & 2 & Quan hệ số học $v_1 < v_2$ \\
+\hline
+\end{longtable}
+
+\section{Các tiên đề FOL}
+
+\subsection*{A1 - Mỗi ô có ít nhất một giá trị}
+\textit{Luật gốc: Mỗi ô trong bảng đều phải được điền một giá trị từ 1 $\to$ 4.}
+\[
+\forall i \forall j \exists v \; Val(i,j,v)
+\]
+
+\subsection*{A2 - Mỗi ô có nhiều nhất một giá trị}
+\textit{Luật gốc: Mỗi ô không thể chứa đồng thời hai giá trị.}
+\[
+\forall i \forall j \forall v_1 \forall v_2 \; 
+(Val(i,j,v_1) \land Val(i,j,v_2)) \Rightarrow v_1 = v_2
+\]
+
+\subsection*{A3 - Không trùng giá trị trong hàng}
+\textit{Luật gốc: Mỗi hàng là một hoán vị của $\{1, 2, 3, 4\}$, tức là không có giá trị nào trong hàng trùng nhau.}
+\[
+\forall i \forall j_1 \forall j_2 \forall v \;
+(Val(i,j_1,v) \land Val(i,j_2,v) \land j_1 \neq j_2) \Rightarrow \bot
+\]
+
+\subsection*{A3' - Không trùng giá trị trong cột}
+\textit{Luật gốc: Mỗi cột là một hoán vị của $\{1, 2, 3, 4\}$, tức là không có giá trị nào trong cột trùng nhau.}
+\[
+\forall j \forall i_1 \forall i_2 \forall v \;
+(Val(i_1,j,v) \land Val(i_2,j,v) \land i_1 \neq i_2) \Rightarrow \bot
+\]
+
+\subsection*{A4 - Bất đẳng thức ngang $<$}
+\textit{Luật  gốc: Nếu có dấu "$<$" giữa hai ô $(i, j)$ và $(i, j+1)$ thì giá trị ô trái nhỏ hơn ô phải. }
+\[
+\forall i \forall j \forall v_1 \forall v_2 \;
+(LessH(i,j) \land Val(i,j,v_1) \land Val(i,j+1,v_2))
+\Rightarrow Less(v_1,v_2)
+\]
+
+\subsection*{A4' - Bất đẳng thức ngang $>$}
+\textit{Luật  gốc: Nếu có dấu "$>$" giữa hai ô $(i, j)$ và $(i, j+1)$ thì giá trị ô phải nhỏ hơn ô trái. }
+\[
+\forall i \forall j \forall v_1 \forall v_2 \;
+(GreaterH(i,j) \land Val(i,j,v_1) \land Val(i,j+1,v_2))
+\Rightarrow Less(v_2,v_1)
+\]
+
+\subsection*{A5 - Bất đẳng thức dọc $<$}
+\textit{Luật  gốc: Nếu có dấu "$<$" giữa hai ô $(i, j)$ và $(i+1, j)$ thì giá trị ô trên nhỏ hơn ô dưới. }
+\[
+\forall i \forall j \forall v_1 \forall v_2 \;
+(LessV(i,j) \land Val(i,j,v_1) \land Val(i+1,j,v_2))
+\Rightarrow Less(v_1,v_2)
+\]
+
+\subsection*{A5' - Bất đẳng thức dọc $>$}
+\textit{Luật  gốc: Nếu có dấu "$>$" giữa hai ô $(i, j)$ và $(i+1, j)$ thì giá trị ô dưới nhỏ hơn ô trên. }
+\[
+\forall i \forall j \forall v_1 \forall v_2 \;
+(GreaterV(i,j) \land Val(i,j,v_1) \land Val(i+1,j,v_2))
+\Rightarrow Less(v_2,v_1)
+\]
+
+\subsection*{A6 - Ô cho sẵn}
+\textit{Luật  gốc: Các ô được điền sẵn phải giữ nguyên giá trị đó.}
+\[
+\forall i \forall j \forall v \;
+Given(i,j,v) \Rightarrow Val(i,j,v)
+\]
+
+\subsection*{A7 - Ràng buộc miền giá trị}
+\textit{Luật  gốc: Chỉ được điền các số thuộc $\{1, 2, 3, 4\}$, không được điền số ngoài miền giá trị}
+\[
+\forall i \forall j \forall v \;
+Val(i,j,v) \Rightarrow (v=1 \lor v=2 \lor v=3 \lor v=4)
+\]
+
+\section{Skolem hóa}
+
+Chỉ có A1 chứa lượng từ tồn tại:
+
+\[
+\forall i \forall j \exists v \; Val(i,j,v)
+\]
+
+Phân tích cấu trúc lượng từ:
+\begin{itemize}
+    \item $\exists v$ nằm trong phạm vi của $\forall i$ và $\forall j$.
+    \item Vì vậy ta thay v bằng hàm Skolem $f(i, j)$ - hàm hai biến phụ thuộc vào $i$ và $j$.
+    \item Loại bỏ $\exists v$, giữ nguyên $\forall i \forall j$
+\end{itemize}
+
+Sau Skolem hóa:
+
+\[
+\forall i \forall j \; Val(i,j,f(i,j))
+\]
+
+$\Rightarrow$ Với mỗi cặp tọa độ $(i, j)$ cụ thể, hàm $f(i, j)$ trả về một giá trị xác định được gán cho ô đó. Tức là, ta không cần biết cụ thể giá trị là gì - chỉ cần biết nó tồn tại và duy nhất ứng với mỗi $\forall i \forall j$.
+
+\section{Chuyển đổi CNF}
+
+\subsection{A1}
+\[
+\forall i \forall j \; Val(i,j,f(i,j))
+\]
+\[
+Val(i,j,f(i,j))
+\]
+
+\subsection{A3}
+\[
+\forall i \forall j_1 \forall j_2 \forall v \;
+(Val(i,j_1,v) \land Val(i,j_2,v) \land j_1 \neq j_2) \Rightarrow \bot
+\]
+\[
+\forall i \forall j_1 \forall j_2 \forall v \;
+\neg [(Val(i,j_1,v) \land Val(i,j_2,v) \land j_1 \neq j_2)]
+\]
+\[
+\neg Val(i,j_1,v) \lor \neg Val(i,j_2,v) \lor (j_1 = j_2)
+\]
+
+\subsection{A4}
+\[
+\forall i \forall j \forall v_1 \forall v_2 \;
+(LessH(i,j) \land Val(i,j,v_1) \land Val(i,j+1,v_2))
+\Rightarrow Less(v_1,v_2)
+\]
+\[
+\forall i \forall j \forall v_1 \forall v_2 \;
+\neg [LessH(i,j) \land Val(i,j,v_1) \land Val(i,j+1,v_2)]
+\lor Less(v_1,v_2)
+\]
+\[
+\neg LessH(i,j) \lor \neg Val(i,j,v_1) \lor \neg Val(i,j+1,v_2) \lor Less(v_1,v_2)
+\]
+
+\section{Kết luận}
+
+Hệ tiên đề FOL gồm 10 tiên đề mô hình hóa đầy đủ luật chơi Futoshiki. Chỉ có một tiên đề cần Skolem hóa (A1), các tiên đề còn lại thuần phổ dụng. Sau khi chuyển sang CNF, hệ có thể sử dụng cho SAT solver hoặc suy diễn logic.

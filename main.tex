@@ -1,0 +1,187 @@
+\documentclass[oneside,a4paper,11pt]{extreport}
+
+% Ngôn ngữ và font
+\usepackage[T5]{fontenc}          
+\usepackage[utf8]{inputenc}       
+\usepackage[vietnamese]{babel}    
+\usepackage{mathpazo}             % Font Palatino
+
+% Trích dẫn
+\usepackage[autostyle=false]{csquotes}
+\usepackage[
+  backend=biber,
+  style=numeric,
+  sorting=none
+]{biblatex}
+\addbibresource{ref.bib}
+\renewbibmacro{in:}{}
+
+% Bỏ chữ volume/pages
+\DefineBibliographyStrings{english}{
+  volume = {},
+  volumes = {},
+  page = {},
+  pages = {}
+}
+
+% Bỏ format "vol." và "pp."
+\DeclareFieldFormat{volume}{#1}
+\DeclareFieldFormat{pages}{#1}
+
+% Hình ảnh
+\usepackage{graphicx} 
+\graphicspath{{images/}}
+\usepackage{adjustbox} % Dùng để căn chỉnh ảnh
+
+% Tables & multi-col
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow} % gom dòng
+\usepackage{multicol} % gom cột 
+
+% Toán học
+\usepackage{amsmath,amssymb}
+
+% Header & footer
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\setlength{\headsep}{20pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize\nouppercase\leftmark}
+\cfoot{\footnotesize\thepage}
+\makeatletter\let\ps@plain\ps@fancy\makeatother
+\fancyhfoffset{1cm}
+
+% Giãn dòng và căn lề
+\usepackage{setspace}
+\onehalfspacing
+\usepackage[
+  top=15mm, bottom=15mm, left=12mm, right=15mm,
+  footskip=10mm, includefoot
+]{geometry}
+
+% Chỉnh lại tiêu đề
+\usepackage{titlesec}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\listfigurename}{Danh sách hình}
+\renewcommand{\listtablename}{Danh sách bảng}
+\renewcommand{\appendixname}{Phụ lục}
+
+\titleformat{\chapter}[display]{\normalfont\bfseries\Large}{\chaptername\ \thechapter}{10pt}{\huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+\titleformat{\section}{\normalfont\bfseries\large}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{1em}{}
+
+% TikZ để vẽ border
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+% Thụt đầu dòng
+\setlength{\parindent}{8pt}
+\usepackage{indentfirst}
+
+% Liên kết
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue
+}
+\usepackage{url}
+
+%format môi trường code
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+    language=C,
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{gray!10},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=4,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=true
+}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+
+\setlist[itemize]{itemsep=0pt, topsep=0pt}
+
+\usepackage{needspace}
+\usepackage{etoolbox}
+
+\usepackage[linesnumbered,ruled,longend]{algorithm2e}
+\usepackage{placeins}
+
+\pretocmd{\section}{\Needspace{5\baselineskip}}{}{}
+\pretocmd{\subsection}{\Needspace{2\baselineskip}}{}{}
+\pretocmd{\chapter}{\Needspace{8\baselineskip}}{}{}
+
+\begin{document}
+% -------------------------------
+% Trang bìa
+% -------------------------------
+\input{cover}
+\clearpage
+
+% -------------------------------
+% Trang thông tin (Lời cảm ơn, tóm tắt, ...)
+% -------------------------------
+\input{info}
+\clearpage
+
+% ===== Đánh số Roman =====
+% \pagenumbering{roman}
+% \setcounter{page}{1}
+
+\tableofcontents
+\clearpage
+
+% ===== Đánh số Arabic =====
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{fancy}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Danh sách hình vẽ}
+\listoffigures
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Danh sách bảng}
+\listoftables
+
+\include{Chapter1}
+\include{Chapter2}
+\include{Chapter3}
+\include{Chapter4}
+\include{Chapter5}
+\include{Chapter6}
+
+\include{Chapter8}
+
+% -------------------------------
+% Tài liệu tham khảo
+% -------------------------------
+\clearpage
+\pagestyle{plain}
+\phantomsection
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+\printbibliography
+
+\end{document}
+
