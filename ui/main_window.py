@@ -15,6 +15,7 @@ from solver.astar_solver import AStarSolver
 from heuristics.h1_inequality import Heuristic1
 from heuristics.h2_ac3 import Heuristic2
 from utils.goal import is_valid
+from inference.backward_chaining import query_val
 import os
 import time
 
@@ -287,36 +288,6 @@ class MainWindow(QMainWindow):
             difficulty,
             on_done=on_done
         )
-
-    # ground cnf KB
-    def debug_print_kb(self):
-        """In toàn bộ Knowledge Base ra Console để kiểm tra."""
-        if not hasattr(self, 'data') or self.data is None:
-            print("[KB Debug] Không có dữ liệu bàn cờ để tạo KB.")
-            return
-
-        print(f"\n{'='*20} GENERATING KB (N={self.data.n}) {'='*20}")
-        
-        try:
-            kb = generate_kb(self.data)
-            
-            # 2. Lấy danh sách các câu con (conjuncts) từ And()
-            # Trong logic.py của bạn, And lưu các câu con trong self.conjuncts
-            clauses = kb.conjuncts
-            
-            print(f"Tổng số mệnh đề (clauses): {len(clauses)}")
-            print(f"Tổng số biến (symbols): {len(kb.symbols())}")
-            print("-" * 50)
-
-            # 3. In chi tiết từng mệnh đề
-            for i, clause in enumerate(clauses):
-                # .formula() giúp hiển thị ký hiệu logic ~, |, & thay vì tên object
-                print(f"Clause {i:03d}: {clause.formula()}")
-            
-            print(f"{'='*25} END KB DEBUG {'='*25}\n")
-
-        except Exception as e:
-            print(f"[KB Debug] Lỗi khi tạo KB: {e}")
     
     # ground horn KB
     def debug_print_horn_kb(self, filename="output/horn_kb.txt", limit_rules=1000):

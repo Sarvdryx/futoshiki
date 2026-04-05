@@ -13,7 +13,7 @@ def build_kb(data):
         for j in range(N):
             v = data.grid[i][j]
             if v != 0:
-                kb.add_fact(Given(i+1, j+1, v))
+                kb.add_fact(Given(i+1, j+1, v)) 
 
     # =====================
     # 2. INEQUALITY → FACT

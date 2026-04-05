@@ -6,6 +6,7 @@ class KnowledgeBase:
         self.rules = []
         self.agenda = []
         self.index = {}
+        self.conclusion_index = {}
 
     def add_fact(self, fact):
         if fact not in self.facts:
@@ -20,6 +21,9 @@ class KnowledgeBase:
             if p not in self.index:
                 self.index[p] = []
             self.index[p].append(rule)
+            if rule.conclusion not in self.conclusion_index:
+                self.conclusion_index[rule.conclusion] = []
+            self.conclusion_index[rule.conclusion].append(rule)
 
     def copy(self):
         new_kb = KnowledgeBase()

@@ -43,7 +43,7 @@ class BruteForceSolver:
                         self.grid[r][c] = val
 
                         if self._is_valid_partial():
-                            if self._solve_all():
+                            if self._solve_all(stop_check):
                                 return True
 
                         self.grid[r][c] = 0
