@@ -13,6 +13,7 @@ class Heuristic2(Heuristic):
 
         count = 0
         for d in domains.values():
-            count += len(d)
+            if len(d) > 1:
+                count += 1
 
         return count
