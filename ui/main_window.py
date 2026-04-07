@@ -174,8 +174,8 @@ class MainWindow(QMainWindow):
         # top_layout.addWidget(make_label("Size"))
         # top_layout.addWidget(self.size_box)
 
-        top_layout.addWidget(make_label("Difficulty"))
-        top_layout.addWidget(self.diff_box)
+        # top_layout.addWidget(make_label("Difficulty"))
+        # top_layout.addWidget(self.diff_box)
 
         top_layout.addWidget(make_label("Algorithm"))
         top_layout.addWidget(self.click_box)
@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         self.controls = [
             self.file_box,
             # self.size_box,
-            self.diff_box,
+            # self.diff_box,
             self.click_box,
             # self.random_button,
             self.solve_button
@@ -239,35 +239,23 @@ class MainWindow(QMainWindow):
 
         right_panel_layout.addWidget(self.log_box)
 
-        # Control Buttons
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(10)
-        btn_layout.setContentsMargins(0, 20, 0, 0)
+        self.reset_log_button = QPushButton("Reset Log")
+        self.reset_log_button.setFixedHeight(50)
 
-        self.undo_button = QPushButton()
-        self.pause_button = QPushButton()
-        self.ff_button = QPushButton()
+        self.reset_log_button.setStyleSheet("""
+            QPushButton {
+                background-color: #f38ba8;
+                color: white;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #eba0ac;
+            }
+        """)
 
-        style = self.style()
-        self.undo_button.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaSeekBackward))
-        self.pause_button.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaPause))
-        self.ff_button.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaSeekForward))
-        
-        btn_layout.addStretch()
-        for btn in [self.undo_button, self.pause_button, self.ff_button]:
-            btn.setFixedSize(60, 60) # Tăng kích thước nút cho cân đối
-            btn.setIconSize(btn.size() * 0.6)
-
-            btn.setStyleSheet("""
-                QPushButton {
-                    background-color: white;
-                    border-radius: 10px;
-                }
-            """)
-            btn_layout.addWidget(btn)
-        btn_layout.addStretch()
-
-        right_panel_layout.addLayout(btn_layout)
+        self.reset_log_button.clicked.connect(self.reset_log)
+        right_panel_layout.addWidget(self.reset_log_button)
         
         # Bọc Right Panel vào một layout để nó luôn nằm giữa theo chiều dọc
         right_wrapper = QVBoxLayout()
@@ -514,12 +502,18 @@ class MainWindow(QMainWindow):
 
             if result is None:
                 self.footer.setText("No solution")
+                self.log_box.append("❌ No solution found.\n")
             else:
-                self.footer.setText(f"Solve in {stats["runtime"]:.6f}s")
+                self.footer.setText(f"Solve in {stats['runtime']:.6f}s")
+
+                # LOG đẹp
+                log_text = self.format_stats(method, stats)
+                self.log_box.append(log_text)
 
                 self.data = result
                 self.clear_board()
                 self.render_board(self.data)
+
                 current_text = self.file_box.currentText()
                 output_file = current_text.replace("input", "output")
                 output_file = os.path.join("output", output_file)
@@ -545,3 +539,19 @@ class MainWindow(QMainWindow):
         self.stop_flag = True
         self.stop_button.setVisible(False)
         self.footer.setText("Ready")
+
+    def format_stats(self, method, stats):
+        return f"""
+        ==============================
+        🧠 Algorithm: {method}
+
+        ⏱ Runtime        : {stats["runtime"]:.6f} s
+        📦 Memory Peak   : {stats["memory"] / 1024:.2f} KB
+        🌳 Nodes Expanded: {stats["nodes_expanded"]}
+
+        ==============================
+        """.strip()
+
+    def reset_log(self):
+        self.log_box.clear()
+        self.log_box.setPlaceholderText("Log output...")
