@@ -8,6 +8,9 @@ class Heuristic1(Heuristic):
 
         for i in range(n):
             for j in range(n):
+                # Bỏ qua các ô của đề bài ban đầu
+                if data.grid[i][j] != 0:
+                    continue
                 violated = False
 
                 # --- kiểm tra ngang: (i, j) với (i, j+1)
