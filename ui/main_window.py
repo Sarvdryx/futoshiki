@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Futoshiki")
-        self.resize(1400, 900)
+        self.resize(1200, 700)
         self.stop_flag = False
 
         self.setStyleSheet("""
@@ -52,63 +52,150 @@ class MainWindow(QMainWindow):
         central.setLayout(self.main_layout)
 
         # ===== TITLE =====
-        title = QLabel("Futoshiki")
-        title.setStyleSheet("font-size: 28px; font-weight: bold;")
+        title = QLabel("FUTOSHIKI SOLVER")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 30px;
+                font-weight: bold;
+                color: #3afcec;
+                letter-spacing: 1px;
+                margin: 5px;
+            }
+        """)
         self.main_layout.addWidget(title)
 
-        # ===== TOP CONTROLS =====
-        top_layout = QHBoxLayout()
+        # ===== TOP CONTROLS (REDESIGNED) =====
+        top_container = QWidget()
+        top_container.setStyleSheet("""
+            QWidget {
+                background-color: #020617;
+                border: 2px solid #1e293b;
+                border-radius: 12px;
+                padding: 10px;
+            }
+        """)
 
-        # choosing file
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(15)
+        top_container.setLayout(top_layout)
+
+        # ===== STYLES =====
+        label_style = """
+            QLabel {
+                color: #94a3b8;
+                font-size: 13px;
+                font-weight: 500;
+            }
+        """
+
+        combo_style = """
+            QComboBox {
+                background-color: #1e293b;
+                color: #f8fafc;
+                border: 2px solid #334155;
+                border-radius: 8px;
+                padding: 5px 10px;
+                min-width: 120px;
+            }
+            QComboBox:hover {
+                border: 2px solid #38bdf8;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+        """
+
+        # ===== COMBO BOXES =====
         self.file_box = QComboBox()
+        self.file_box.setStyleSheet(combo_style)
         self.refresh_file_list()
         self.file_box.currentTextChanged.connect(self.load_board_from_file)
 
-        self.size_box = QComboBox()
-        self.size_box.addItems(["4", "5", "6", "7", "8", "9"])
+        # self.size_box = QComboBox()
+        # self.size_box.addItems(["4", "5", "6", "7", "8", "9"])
+        # self.size_box.setStyleSheet(combo_style)
 
         self.diff_box = QComboBox()
         self.diff_box.addItems(["easy", "medium", "hard"])
+        self.diff_box.setStyleSheet(combo_style)
 
         self.click_box = QComboBox()
-        self.click_box.addItems(["Forward Chaining", "A* (Heuristic 1)", "A* (Heuristic 2)", "Backtracking", "Brute Force"])
+        self.click_box.addItems([
+            "Forward Chaining",
+            "A* (Heuristic 1)",
+            "A* (Heuristic 2)",
+            "Backtracking",
+            "Brute Force"
+        ])
+        self.click_box.setStyleSheet(combo_style)
 
-        self.random_button = QPushButton("Generate puzzle")
-        self.random_button.clicked.connect(self.load_board_from_random_puzzle)
-
+        # ===== BUTTONS =====
         self.solve_button = QPushButton("Solve")
-        self.solve_button.clicked.connect(
-            lambda: self.solve_puzzle()
-        )
+        self.solve_button.setStyleSheet("""
+            QPushButton {
+                background-color: #22c55e;
+                color: white;
+                border-radius: 8px;
+                padding: 6px 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #16a34a;
+            }
+        """)
+        self.solve_button.clicked.connect(lambda: self.solve_puzzle())
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.setVisible(False)
+        self.stop_button.setStyleSheet("""
+            QPushButton {
+                background-color: #ef4444;
+                color: white;
+                border-radius: 8px;
+                padding: 6px 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #dc2626;
+            }
+        """)
         self.stop_button.clicked.connect(self.stop_solving)
 
-        top_layout.addWidget(QLabel("Input File:"))
+        # ===== ADD TO LAYOUT =====
+        def make_label(text):
+            lbl = QLabel(text)
+            lbl.setStyleSheet(label_style)
+            return lbl
+
+        top_layout.addWidget(make_label("Input"))
         top_layout.addWidget(self.file_box)
-        top_layout.addWidget(QLabel("Board size:"))
-        top_layout.addWidget(self.size_box)
-        top_layout.addWidget(QLabel("Difficulty:"))
+
+        # top_layout.addWidget(make_label("Size"))
+        # top_layout.addWidget(self.size_box)
+
+        top_layout.addWidget(make_label("Difficulty"))
         top_layout.addWidget(self.diff_box)
-        top_layout.addWidget(QLabel("Agents:"))
+
+        top_layout.addWidget(make_label("Algorithm"))
         top_layout.addWidget(self.click_box)
-        top_layout.addWidget(self.random_button)
+
+        top_layout.addSpacing(20)
+
         top_layout.addWidget(self.solve_button)
         top_layout.addWidget(self.stop_button)
+
         top_layout.addStretch()
 
-        
-
-        self.main_layout.addLayout(top_layout)
-        
+        # ===== ADD TO MAIN LAYOUT =====
+        self.main_layout.addWidget(top_container)
 
         self.controls = [
             self.file_box,
-            self.size_box,
+            # self.size_box,
             self.diff_box,
             self.click_box,
-            self.random_button,
+            # self.random_button,
             self.solve_button
         ]
 
@@ -136,7 +223,20 @@ class MainWindow(QMainWindow):
         self.log_box = QTextEdit()
         self.log_box.setReadOnly(True)
         self.log_box.setPlaceholderText("Log output...")
-        self.log_box.setFixedSize(500, 300) # Cố định kích thước log theo thiết kế
+        self.log_box.setFixedSize(500, 300)
+
+        self.log_box.setStyleSheet("""
+            QTextEdit {
+                background-color: #020617;
+                color: #e2e8f0;
+                border: 2px solid #1e293b;
+                border-radius: 12px;
+                padding: 10px;
+                font-family: Consolas, monospace;
+                font-size: 13px;
+            }
+        """)
+
         right_panel_layout.addWidget(self.log_box)
 
         # Control Buttons
