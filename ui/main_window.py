@@ -8,7 +8,7 @@ from utils.random_puzzle import generate_puzzle
 from utils.thread_runner import run_in_thread
 from horn_clauses.build_horn_kb import build_kb
 from inference.forward_chaining import forward_chaining
-from solver.smart_fc_solver import solve_board
+from solver.fc_solver import fc_solve
 from solver.backtracking_solver import BacktrackingSolver
 from solver.brutefrorce_solver import BruteForceSolver
 from solver.astar_solver import AStarSolver
@@ -16,6 +16,7 @@ from heuristics.h1_inequality import Heuristic1
 from heuristics.h2_ac3 import Heuristic2
 from utils.goal import is_valid
 from inference.backward_chaining import query_val
+from utils.write_output import write_output_file
 import os
 import time
 
@@ -377,28 +378,28 @@ class MainWindow(QMainWindow):
         if self.stop_flag:
             return None, 0
         if method == "Forward Chaining":
-            result, runtime = solve_board(data, stop_check=lambda: self.stop_flag)
+            result, stats = fc_solve(data, stop_check=lambda: self.stop_flag)
 
         elif method == "A* (Heuristic 1)":
             solver = AStarSolver(Heuristic1(), is_valid)
-            result, runtime = solver.solve(data, stop_check=lambda: self.stop_flag)
+            result, stats = solver.solve(data, stop_check=lambda: self.stop_flag)
 
         elif method == "A* (Heuristic 2)":
             solver = AStarSolver(Heuristic2(), is_valid)
-            result, runtime = solver.solve(data, stop_check=lambda: self.stop_flag)
+            result, stats = solver.solve(data, stop_check=lambda: self.stop_flag)
 
         elif method == "Brute Force":
             solver = BruteForceSolver(data)
-            result, runtime = solver.solve(stop_check=lambda: self.stop_flag)
+            result, stats = solver.solve(stop_check=lambda: self.stop_flag)
 
         elif method == "Backtracking":
             solver = BacktrackingSolver(data)
-            result, runtime = solver.solve(stop_check=lambda: self.stop_flag)
+            result, stats = solver.solve(stop_check=lambda: self.stop_flag)
 
         else:
             raise Exception("Thuật toán không hợp lệ")
 
-        return result, runtime
+        return result, stats
     
     def solve_puzzle(self):
         method = self.click_box.currentText()
@@ -409,16 +410,20 @@ class MainWindow(QMainWindow):
         self.footer.setText("Solving...")
 
         def on_done(result_tuple):
-            result, runtime = result_tuple
+            result, stats = result_tuple
 
             if result is None:
                 self.footer.setText("No solution")
             else:
-                self.footer.setText(f"Solve in {runtime:.6f}s")
+                self.footer.setText(f"Solve in {stats["runtime"]:.6f}s")
 
                 self.data = result
                 self.clear_board()
                 self.render_board(self.data)
+                current_text = self.file_box.currentText()
+                output_file = current_text.replace("input", "output")
+                output_file = os.path.join("output", output_file)
+                write_output_file(result, output_file)
 
             self.set_controls_enabled(True)
             self.stop_button.setVisible(False)

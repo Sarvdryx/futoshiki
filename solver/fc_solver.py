@@ -2,6 +2,10 @@ from fol.symbol import *
 from inference.forward_chaining import forward_chaining
 from copy import deepcopy
 from horn_clauses.build_horn_kb import build_kb
+import time
+import tracemalloc
+
+nodes_expanded = 0
 
 def domain_init(data):
     N = data.n
@@ -27,7 +31,7 @@ def check_conflict(kb):
             not_val_name = f"NotVal_{i}_{j}_{v}"
 
             if not_val_name in fact_names:
-                print(f"❌ Conflict: Val({i},{j},{v}) & NotVal({i},{j},{v})")
+                # print(f"❌ Conflict: Val({i},{j},{v}) & NotVal({i},{j},{v})")
                 return True
 
     return False
@@ -47,9 +51,9 @@ def update_domain_from_kb(domain, kb):
                 domain[(i, j)] = {v}
                 changed = True
 
-    for (i, j), vals in domain.items():
-        if len(vals) == 0:
-            print(f"❌ EMPTY DOMAIN at ({i},{j})")
+    # for (i, j), vals in domain.items():
+    #     if len(vals) == 0:
+    #         print(f"❌ EMPTY DOMAIN at ({i},{j})")
     return changed, False
 
 def propagate_singletons(domain, kb):
@@ -64,13 +68,16 @@ def propagate_singletons(domain, kb):
                 added = True
     return added
 
-def propagate(kb, domain, depth=0):
+def propagate(kb, domain, depth=0, stop_check=None):
     step = 0
 
     while True:
-        if depth <= 2:
-            print(f"\n[PROP][D{depth}] Step {step}")
-            print(f"Facts: {len(kb.facts)} | Agenda: {len(kb.agenda)}")
+        if stop_check and stop_check():
+            # print(f"[PROP] ⛔ Stopped at depth {depth}")
+            return False
+        # if depth <= 2:
+        #     print(f"\n[PROP][D{depth}] Step {step}")
+        #     print(f"Facts: {len(kb.facts)} | Agenda: {len(kb.agenda)}")
 
         old_domain = {k: set(v) for k, v in domain.items()}
 
@@ -79,30 +86,29 @@ def propagate(kb, domain, depth=0):
 
         # 2. conflict
         if check_conflict(kb):
-            print(f"❌ Conflict at depth {depth}")
+            # print(f"❌ Conflict at depth {depth}")
             return False
 
         # 3. update domain
         changed_domain, contradiction = update_domain_from_kb(domain, kb)
 
-        if depth <= 2:
-            print("Domain snapshot:")
-            print_domain(domain)
+        # if depth <= 2:
+        #     print("Domain snapshot:")
+        #     print_domain(domain)
 
         if contradiction:
-            print(f"❌ Domain wipe at depth {depth}")
+            # print(f"❌ Domain wipe at depth {depth}")
             return False
 
         # 4. singleton
         changed_singleton = propagate_singletons(domain, kb)
 
-        if changed_singleton and depth <= 2:
-            print("   + Singleton → Val")
+        # if changed_singleton and depth <= 2:
+        #     print("   + Singleton → Val")
 
-        # 🔥 stagnation check
         if domain == old_domain and not changed_singleton:
-            if depth <= 2:
-                print("✔ Fixed point")
+            # if depth <= 2:
+            #     print("✔ Fixed point")
             break
 
         step += 1
@@ -118,19 +124,24 @@ def select_mrv(domain):
             best_cell = cell
     return best_cell
 
-def backtrack(kb, domain, depth=0):
-    print(f"\n{'='*40}")
-    print(f"[BT] Depth {depth}")
+def backtrack(kb, domain, depth=0, stop_check=None):
+    if stop_check and stop_check():
+        # print(f"[BT] ⛔ Stopped at depth {depth}")
+        return None
+    # print(f"\n{'='*40}")
+    # print(f"[BT] Depth {depth}")
+    global nodes_expanded
+    nodes_expanded += 1
 
     sizes = [len(v) for v in domain.values()]
-    print(f"Domain size: min={min(sizes)}, max={max(sizes)}")
+    # print(f"Domain size: min={min(sizes)}, max={max(sizes)}")
 
-    if not propagate(kb, domain, depth):
-        print(f"[BT] ❌ Fail at depth {depth}")
+    if not propagate(kb, domain, depth, stop_check):
+        # print(f"[BT] ❌ Fail at depth {depth}")
         return None
 
     if all(len(v) == 1 for v in domain.values()):
-        print(f"[BT] ✅ SOLVED at depth {depth}")
+        # print(f"[BT] ✅ SOLVED at depth {depth}")
         return domain
 
     cell = select_mrv(domain)
@@ -138,10 +149,10 @@ def backtrack(kb, domain, depth=0):
         return None
 
     i, j = cell
-    print(f"[BT] Choose ({i},{j}) = {domain[cell]}")
+    # print(f"[BT] Choose ({i},{j}) = {domain[cell]}")
 
     for v in sorted(domain[cell]):
-        print(f"[BT] → TRY ({i},{j}) = {v}")
+        # print(f"[BT] → TRY ({i},{j}) = {v}")
 
         new_kb = kb.copy()
         new_domain = deepcopy(domain)
@@ -154,21 +165,41 @@ def backtrack(kb, domain, depth=0):
         if result:
             return result
 
-        print(f"[BT] ← BACKTRACK ({i},{j}) = {v}")
+        # print(f"[BT] ← BACKTRACK ({i},{j}) = {v}")
 
     return None
 
-def fc_solve(data):
+def fc_solve(data, stop_check=None):
+    global nodes_expanded
+    nodes_expanded = 0
+
+    tracemalloc.start()
+    start_time = time.perf_counter()
+
     domain = domain_init(data)
     kb = build_kb(data)
-    result = backtrack(kb, domain)
-    
+    depth = 0
+    result = backtrack(kb, domain,depth, stop_check)
+
+    end_time = time.perf_counter()
+    current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
     if result is None:
-        return None
+        return None, {
+            "runtime": end_time - start_time,
+            "memory": peak,
+            "nodes_expanded": nodes_expanded
+        }
 
     for (i, j), values in result.items():
         data.grid[i-1][j-1] = next(iter(values))
-    return data
+
+    return data, {
+        "runtime": end_time - start_time,
+        "memory": peak,
+        "nodes_expanded": nodes_expanded
+    }
 
 def parse_fact(fact):
     parts = fact.name.split("_")

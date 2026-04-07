@@ -1,6 +1,7 @@
 from copy import deepcopy
 from model.board import FutoshikiData
 import time
+import tracemalloc   # 👈 đo memory
 
 class BacktrackingSolver:
     def __init__(self, data: FutoshikiData):
@@ -9,34 +10,44 @@ class BacktrackingSolver:
         self.h = data.h_constraints
         self.v = data.v_constraints
 
-        # thống kê (cho report)
-        self.steps = 0
-        self.backtracks = 0
+        self.steps = 0        
 
-    def solve(self, stop_check=None) -> FutoshikiData:
-        start_time = time.time()
+    def solve(self, stop_check=None):
+        start_time = time.perf_counter()
+        tracemalloc.start()
 
         if self._backtrack(stop_check):
-            end_time = time.time()
-            runtime = end_time - start_time   
+            runtime = time.perf_counter() - start_time
+            current, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
 
             result = FutoshikiData(self.n)
             result.grid = deepcopy(self.grid)
             result.h_constraints = self.h
             result.v_constraints = self.v
 
-            return result, runtime
+            return result, {
+                "runtime": runtime,
+                "memory": peak,
+                "nodes_expanded": self.steps
+            }
 
-        end_time = time.time()
-        runtime = end_time - start_time
+        runtime = time.perf_counter() - start_time
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
 
-        return None, runtime
+        return None, {
+            "runtime": runtime,
+            "memory": peak,
+            "nodes_expanded": self.steps
+        }
+
     # ================= CORE =================
-
     def _backtrack(self, stop_check):
         if stop_check and stop_check():
             return False
-        self.steps += 1
+
+        self.steps += 1 
 
         cell = self._find_empty()
         if not cell:
@@ -47,19 +58,18 @@ class BacktrackingSolver:
         for val in range(1, self.n + 1):
             if stop_check and stop_check():
                 return False
+
             if self._is_valid(r, c, val):
                 self.grid[r][c] = val
 
                 if self._backtrack(stop_check):
                     return True
 
-                self.grid[r][c] = 0
-                self.backtracks += 1
+                self.grid[r][c] = 0 
 
         return False
 
     # ================= HELPERS =================
-
     def _find_empty(self):
         for r in range(self.n):
             for c in range(self.n):
@@ -68,7 +78,6 @@ class BacktrackingSolver:
         return None
 
     def _is_valid(self, r, c, val):
-        # Row + Column
         for i in range(self.n):
             if self.grid[r][i] == val:
                 return False
