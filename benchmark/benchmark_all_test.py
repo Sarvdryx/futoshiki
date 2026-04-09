@@ -3,7 +3,7 @@ import pandas as pd
 from copy import deepcopy
 from solver.fc_solver import fc_solve
 from solver.backtracking_solver import BacktrackingSolver
-from solver.brutefrorce_solver import BruteForceSolver
+from solver.bruteforce_solver import BruteForceSolver
 from solver.astar_solver import AStarSolver
 from heuristics.h1_inequality import Heuristic1
 from heuristics.h2_ac3 import Heuristic2
