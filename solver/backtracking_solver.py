@@ -1,16 +1,26 @@
 from copy import deepcopy
 from model.board import FutoshikiData
 import time
-import tracemalloc   # 👈 đo memory
+import tracemalloc   
 
 class BacktrackingSolver:
-    def __init__(self, data: FutoshikiData):
+    def __init__(self, data: FutoshikiData, enable_trace = True):
         self.n = data.n
         self.grid = deepcopy(data.grid)
         self.h = data.h_constraints
         self.v = data.v_constraints
 
         self.steps = 0        
+        self.enable_trace = enable_trace
+        self.trace = [] if enable_trace else None
+
+    def _log(self, action, r, c, val):
+        if self.enable_trace:
+            self.trace.append({
+                "action": action,
+                "cell": (r, c),
+                "value": val
+            })
 
     def solve(self, stop_check=None):
         start_time = time.perf_counter()
@@ -29,7 +39,8 @@ class BacktrackingSolver:
             return result, {
                 "runtime": runtime,
                 "memory": peak,
-                "nodes_expanded": self.steps
+                "nodes_expanded": self.steps,
+                "trace": self.trace if self.enable_trace else None
             }
 
         runtime = time.perf_counter() - start_time
@@ -39,7 +50,8 @@ class BacktrackingSolver:
         return None, {
             "runtime": runtime,
             "memory": peak,
-            "nodes_expanded": self.steps
+            "nodes_expanded": self.steps,
+            "trace": self.trace if self.enable_trace else None
         }
 
     # ================= CORE =================
@@ -59,13 +71,19 @@ class BacktrackingSolver:
             if stop_check and stop_check():
                 return False
 
+            self._log("assign", r, c, val)
+
             if self._is_valid(r, c, val):
                 self.grid[r][c] = val
 
                 if self._backtrack(stop_check):
                     return True
+                self._log("backtrack", r, c, val)
+                self.grid[r][c] = 0
 
-                self.grid[r][c] = 0 
+            else:
+                self._log("reject", r, c, val) 
+                self._log("backtrack", r, c, val)
 
         return False
 

@@ -1,20 +1,24 @@
 from copy import deepcopy
 from model.board import FutoshikiData
 import time
-import tracemalloc   # 👈 đo memory
+import tracemalloc   
 
 class BruteForceSolver:
-    def __init__(self, data: FutoshikiData):
+    def __init__(self, data: FutoshikiData, enable_trace=True):
         self.n = data.n
         self.grid = deepcopy(data.grid)
         self.h = data.h_constraints
         self.v = data.v_constraints
 
-        self.steps = 0   # 👈 nodes expanded
+        self.steps = 0   
+        self.trace = []
+        self.enable_trace = enable_trace
+        if(self.n >= 5):
+            self.enable_trace = False
 
     def solve(self, stop_check=None):
         start_time = time.perf_counter()
-        tracemalloc.start()   # 👈 bắt đầu đo memory
+        tracemalloc.start()   
 
         if self._solve_all(stop_check):
             runtime = time.perf_counter() - start_time
@@ -29,7 +33,8 @@ class BruteForceSolver:
             return result, {
                 "runtime": runtime,
                 "memory": peak,
-                "nodes_expanded": self.steps
+                "nodes_expanded": self.steps,
+                "trace": self.trace   
             }
 
         runtime = time.perf_counter() - start_time
@@ -39,7 +44,8 @@ class BruteForceSolver:
         return None, {
             "runtime": runtime,
             "memory": peak,
-            "nodes_expanded": self.steps
+            "nodes_expanded": self.steps,
+            "trace": self.trace  
         }
 
     # CORE
@@ -47,7 +53,7 @@ class BruteForceSolver:
         if stop_check and stop_check():
             return False
 
-        self.steps += 1   # 👈 mỗi lần gọi recursion = 1 node expand
+        self.steps += 1   
 
         for r in range(self.n):
             for c in range(self.n):
@@ -57,10 +63,29 @@ class BruteForceSolver:
                             return False
 
                         self.grid[r][c] = val
+                        if self.enable_trace:
+                            self.trace.append({
+                                "action": "assign",
+                                "cell": (r, c),
+                                "value": val
+                            })
 
                         if self._is_valid_partial():
                             if self._solve_all(stop_check):
                                 return True
+                        else:
+                            if self.enable_trace:
+                                self.trace.append({
+                                    "action": "reject",
+                                    "cell": (r, c),
+                                    "value": val
+                                })
+                        if self.enable_trace:
+                            self.trace.append({
+                                "action": "backtrack",
+                                "cell": (r, c),
+                                "value": val
+                            })
 
                         self.grid[r][c] = 0
 

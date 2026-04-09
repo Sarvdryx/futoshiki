@@ -22,6 +22,7 @@ class BoardWidget(QWidget):
         self.cells = {}
         self.h_labels = {}
         self.v_labels = {}
+        self.current_cell = None
 
         self.build_grid()
 
@@ -50,6 +51,21 @@ class BoardWidget(QWidget):
                         }
                         QLineEdit:hover {
                             border: 2px solid #38bdf8;
+                                                }
+                                                /* highlight riêng */
+                        QLineEdit[highlight="true"] {
+                            border: 3px solid #facc15;
+                        }
+
+                        /* trạng thái */
+                        QLineEdit[state="assign"] {
+                            background-color: #22c55e;
+                            color: black;
+                        }
+
+                        QLineEdit[state="reject"] {
+                            background-color: #ef4444;
+                            color: white;
                         }
                     """)
 
@@ -111,6 +127,24 @@ class BoardWidget(QWidget):
                             border-radius: 8px;
                             font-weight: bold;
                         }
+                        QLineEdit:hover {
+                            border: 2px solid #38bdf8;
+                                                }
+                                                /* highlight riêng */
+                        QLineEdit[highlight="true"] {
+                            border: 3px solid #facc15;
+                        }
+
+                        /* trạng thái */
+                        QLineEdit[state="assign"] {
+                            background-color: #22c55e;
+                            color: black;
+                        }
+
+                        QLineEdit[state="reject"] {
+                            background-color: #ef4444;
+                            color: white;
+                        }           
                     """)
                 else:
                     # ===== EMPTY CELL =====
@@ -120,6 +154,24 @@ class BoardWidget(QWidget):
                             color: #f8fafc;
                             border: 2px solid #334155;
                             border-radius: 8px;
+                        }
+                        QLineEdit:hover {
+                            border: 2px solid #38bdf8;
+                                                }
+                                                /* highlight riêng */
+                        QLineEdit[highlight="true"] {
+                            border: 3px solid #facc15;
+                        }
+
+                        /* trạng thái */
+                        QLineEdit[state="assign"] {
+                            background-color: #22c55e;
+                            color: black;
+                        }
+
+                        QLineEdit[state="reject"] {
+                            background-color: #ef4444;
+                            color: white;
                         }
                     """)
 
@@ -185,3 +237,39 @@ class BoardWidget(QWidget):
                     lbl.setFixedSize(40, 20)
                 else:
                     lbl.setText("")
+
+    def apply_step(self, step):
+        action = step["action"]
+        r, c = step["cell"]
+        val = step["value"]
+
+        cell = self.cells[(r, c)]
+
+        # ===== RESET ô cũ =====
+        if self.current_cell and self.current_cell != cell:
+            self.current_cell.setProperty("state", None)
+            self.current_cell.style().unpolish(self.current_cell)
+            self.current_cell.style().polish(self.current_cell)
+
+        # ===== HIGHLIGHT ô đang xét =====
+        cell.setProperty("state", "highlight")
+        cell.style().unpolish(cell)
+        cell.style().polish(cell)
+
+        self.current_cell = cell
+
+        # ===== APPLY ACTION =====
+        if action == "assign":
+            cell.setText(str(val))
+            cell.setProperty("state", "assign")
+
+        elif action == "reject":
+            cell.setProperty("state", "reject")
+
+        elif action == "backtrack":
+            cell.setText("")
+            cell.setProperty("state", None)
+
+        # refresh style
+        cell.style().unpolish(cell)
+        cell.style().polish(cell)

@@ -27,6 +27,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Futoshiki")
         self.resize(1200, 700)
         self.stop_flag = False
+        self.trace = []
+        self.trace_index = 0
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.play_step)
 
         self.setStyleSheet("""
             QWidget {
@@ -256,6 +261,24 @@ class MainWindow(QMainWindow):
 
         self.reset_log_button.clicked.connect(self.reset_log)
         right_panel_layout.addWidget(self.reset_log_button)
+
+        self.run_animation_button = QPushButton("Run Animation")
+        self.run_animation_button.setFixedHeight(50)
+        self.run_animation_button.clicked.connect(self.start_animation)
+
+        self.run_animation_button.setStyleSheet("""
+            QPushButton {
+                background-color: #38bdf8;
+                color: #020617;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0ea5e9;
+            }
+        """)
+
+        right_panel_layout.addWidget(self.run_animation_button)
         
         # Bọc Right Panel vào một layout để nó luôn nằm giữa theo chiều dọc
         right_wrapper = QVBoxLayout()
@@ -500,6 +523,9 @@ class MainWindow(QMainWindow):
         def on_done(result_tuple):
             result, stats = result_tuple
 
+            self.trace = stats["trace"]
+            self.trace_index = 0
+
             if result is None:
                 self.footer.setText("No solution")
                 self.log_box.append("❌ No solution found.\n")
@@ -555,3 +581,22 @@ class MainWindow(QMainWindow):
     def reset_log(self):
         self.log_box.clear()
         self.log_box.setPlaceholderText("Log output...")
+
+    def start_animation(self):
+        if not self.trace:
+            return
+
+        self.load_board_from_file(self.file_box.currentText())
+        self.trace_index = 0      
+        self.timer.start(200)      
+
+    def play_step(self):
+        if self.trace_index >= len(self.trace):
+            self.timer.stop()
+            return
+
+        step = self.trace[self.trace_index]
+
+        self.board.apply_step(step)
+
+        self.trace_index += 1
