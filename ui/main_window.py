@@ -597,6 +597,14 @@ class MainWindow(QMainWindow):
 
         step = self.trace[self.trace_index]
 
-        self.board.apply_step(step)
+        method = self.click_box.currentText()
+
+        # ===== CHỌN CÁCH APPLY =====
+        if "A*" in method:
+            self.board.apply_step_astar(step)
+        # elif "Forward Chaining" in method:
+        #     self.board.apply_step_fc(step)
+        else:
+            self.board.apply_step(step)
 
         self.trace_index += 1

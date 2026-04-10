@@ -273,3 +273,65 @@ class BoardWidget(QWidget):
         # refresh style
         cell.style().unpolish(cell)
         cell.style().polish(cell)
+
+    def apply_step_astar(self, step):
+        action = step["action"]
+        grid = step.get("grid")
+        info = step.get("info", {})
+
+        # ===== RESET toàn bộ highlight cũ =====
+        for cell in self.cells.values():
+            cell.setProperty("state", None)
+            cell.style().unpolish(cell)
+            cell.style().polish(cell)
+
+        # ===== UPDATE GRID =====
+        if grid:
+            for r in range(len(grid)):
+                for c in range(len(grid)):
+                    cell = self.cells[(r, c)]
+                    val = grid[r][c]
+
+                    if val != 0:
+                        cell.setText(str(val))
+                    else:
+                        cell.setText("")
+
+        # ===== HIGHLIGHT theo action =====
+        if action == "pop":
+            # node đang được chọn (quan trọng nhất)
+            for cell in self.cells.values():
+                cell.setProperty("state", "highlight")
+
+        elif action == "expand":
+            for cell in self.cells.values():
+                cell.setProperty("state", "expand")
+
+        elif action == "push":
+            for cell in self.cells.values():
+                cell.setProperty("state", "candidate")
+
+        elif action == "goal":
+            for cell in self.cells.values():
+                cell.setProperty("state", "goal")
+
+        # ===== OPTIONAL: hiển thị info =====
+        if hasattr(self, "log_box") and info:
+            g = info.get("g")
+            h = info.get("h")
+            f = info.get("f")
+
+            msg = f"[{action.upper()}]"
+            if g is not None:
+                msg += f" g={g}"
+            if h is not None:
+                msg += f" h={h}"
+            if f is not None:
+                msg += f" f={f}"
+
+            self.log_box.append(msg)
+
+        # ===== REFRESH UI =====
+        for cell in self.cells.values():
+            cell.style().unpolish(cell)
+            cell.style().polish(cell)
