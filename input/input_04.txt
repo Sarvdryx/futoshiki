@@ -1,14 +1,21 @@
-3
-# Grid: 3 dòng, mỗi dòng 3 số. Ô (1,2) có sẵn số 2.
-0, 2, 0
-0, 0, 0
-0, 0, 0
-# Horizontal: 3 dòng, mỗi dòng 2 số (N-1).
-# Dòng 1: Ô (1,1) < Ô (1,2)
-1, 0
-0, 0
-0, 0
-# Vertical: 2 dòng (N-1), mỗi dòng 3 số.
-# Cột 1: Ô (1,1) > Ô (2,1)
-0, -1, 0
--1, 0, 0
+5
+# Grid : N lines of N values separated by commas .
+# 0 = empty cell ; 1..N = pre - filled digit .
+0 , 0 , 0 , 2 , 0
+0 , 0 , 0 , 0 , 0
+2 , 0 , 0 , 0 , 0
+0 , 0 , 0 , 0 , 0
+0 , 0 , 0 , 0 , 0
+# Horizontal constraints : one line per row , N -1 values .
+# 0 = no constraint , 1 = " <" ( left < right ), -1 = " >" ( left > right )
+0 , 0 , 1 , 1
+0 , 0 , -1 , -1
+0 , 0 , -1 , 1
+0 , 0 , 0 , 1
+0 , 0 , 1 , -1
+# Vertical constraints : one line per row (N -1 lines ), N values .
+# 0 = no constraint , 1 = " <" (top < bottom ), -1 = " >" (top > bottom )
+0 , -1 , 0 , 0 , 0
+0 , 0 , -1 , -1 , 0
+-1 , -1 , 1 , 1 , 0
+1 , 0 , -1 , 0 , 0
