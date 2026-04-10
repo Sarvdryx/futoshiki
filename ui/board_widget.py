@@ -308,82 +308,36 @@ class BoardWidget(QWidget):
         cell.style().polish(cell)
 
     def apply_step_astar(self, step):
-        action = step["action"]
         grid = step.get("grid")
         info = step.get("info", {})
 
-        focus_cells = []   # chỉ những cell cần highlight
-
-        # ===== UPDATE GRID (KHÔNG STYLE) =====
+        # =========================
+        # UPDATE GRID ONLY (TEXT)
+        # =========================
         if grid:
             for r in range(len(grid)):
                 for c in range(len(grid)):
                     val = grid[r][c]
                     cell = self.cells[(r, c)]
 
-                    # chỉ update nếu khác để tránh repaint
+                    # chỉ update khi khác để giảm repaint
                     if self.prev_grid is None or val != self.prev_grid[r][c]:
                         cell.setText(str(val) if val != 0 else "")
 
-                        # lưu lại cell thay đổi
-                        focus_cells.append(cell)
-
-        # ===== RESET STATE CŨ (NHẸ NHÀNG) =====
-        if hasattr(self, "last_highlight"):
-            for cell in self.last_highlight:
-                cell.setProperty("state", None)
-                cell.style().unpolish(cell)
-                cell.style().polish(cell)
-
-        new_highlight = []
-
-        # ===== APPLY VISUAL (CHỈ 1 ÍT CELL) =====
-        if action == "expand":
-            # highlight 1 cell đầu tiên (node đang expand)
-            if focus_cells:
-                c = focus_cells[0]
-                c.setProperty("state", "expand")
-                new_highlight.append(c)
-
-        elif action == "push":
-            # highlight tối đa 2-3 cell thôi (frontier)
-            for c in focus_cells[:3]:
-                c.setProperty("state", "candidate")
-                new_highlight.append(c)
-
-        elif action == "pop":
-            if focus_cells:
-                c = focus_cells[0]
-                c.setProperty("state", "current")
-                new_highlight.append(c)
-
-                QTimer.singleShot(80, lambda c=c: self._do_pop(c))
-
-        elif action == "goal":
-            for c in self.cells.values():
-                c.setProperty("state", "goal")
-                c.style().unpolish(c)
-                c.style().polish(c)
-            self.last_highlight = []
-            return
-
-        # ===== APPLY STYLE (CHỈ CELL CẦN) =====
-        for cell in new_highlight:
-            cell.style().unpolish(cell)
-            cell.style().polish(cell)
-
-        self.last_highlight = new_highlight
-
-        # ===== SAVE GRID =====
+        # =========================
+        # SAVE GRID SNAPSHOT
+        # =========================
         self.prev_grid = [row[:] for row in grid] if grid else None
 
-        # ===== LOG =====
+        # =========================
+        # LOG ONLY
+        # =========================
         if hasattr(self, "log_box") and info:
             g = info.get("g")
             h = info.get("h")
             f = info.get("f")
 
-            msg = f"[{action.upper()}]"
+            msg = "[STEP]"
             if g is not None:
                 msg += f" g={g}"
             if h is not None:

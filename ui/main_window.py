@@ -17,8 +17,10 @@ from heuristics.h2_ac3 import Heuristic2
 from utils.goal import is_valid
 from inference.backward_chaining import query_val
 from utils.write_output import write_output_file
+from PyQt6.QtWidgets import QGraphicsOpacityEffect
 import os
 import time
+import textwrap
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -32,6 +34,7 @@ class MainWindow(QMainWindow):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.play_step)
+        self.is_running = False
 
         self.setStyleSheet("""
             QWidget {
@@ -195,15 +198,6 @@ class MainWindow(QMainWindow):
         # ===== ADD TO MAIN LAYOUT =====
         self.main_layout.addWidget(top_container)
 
-        self.controls = [
-            self.file_box,
-            # self.size_box,
-            # self.diff_box,
-            self.click_box,
-            # self.random_button,
-            self.solve_button
-        ]
-
         # ===== MAIN CONTENT AREA (BOARD + LOG) =====
         content_layout = QHBoxLayout()
         content_layout.setSpacing(50) # Khoảng cách giữa Board và Log
@@ -290,7 +284,19 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addLayout(content_layout)
         # ===== FOOTER =====
-        self.footer = QLabel("Ready")
+        self.footer = QLabel("Ready!")
+
+        self.controls = [
+            self.file_box,
+            # self.size_box,
+            # self.diff_box,
+            self.click_box,
+            # self.random_button,
+            self.solve_button,
+            # self.run_animation_button,
+            self.reset_log_button
+        ]
+
         self.main_layout.addWidget(self.footer)
     
     def refresh_file_list(self):
@@ -380,27 +386,6 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"Lỗi load file '{filename}': {e}")
     
-
-    def load_board_from_random_puzzle(self):
-        size = int(self.size_box.currentText())
-        difficulty = self.diff_box.currentText()
-
-        self.footer.setText("Starting...")
-
-        def on_done(data):
-            self.data = data
-            self.clear_board()
-            self.render_board(self.data)
-            self.footer.setText("Done!")
-
-        self.thread, self.worker = run_in_thread(
-            self, 
-            generate_puzzle,
-            size,
-            difficulty,
-            on_done=on_done
-        )
-    
     # ground horn KB
     def debug_print_horn_kb(self, filename="output/horn_kb.txt", limit_rules=1000):
         kb = build_kb(self.data)
@@ -438,52 +423,6 @@ class MainWindow(QMainWindow):
 
         print(f"KB đã được ghi vào file: {filename}")
     
-    # forward chaining debug
-    def write_kb_to_file(self, filename="output/horn_kb.txt"):
-        # =====================
-        # Measure build KB
-        # =====================
-        start_build = time.perf_counter()
-
-        kb = build_kb(self.data)
-
-        end_build = time.perf_counter()
-        build_time = end_build - start_build
-
-        # =====================
-        # Measure forward chaining
-        # =====================
-        start_fc = time.perf_counter()
-
-        kb = forward_chaining(kb)
-
-        end_fc = time.perf_counter()
-        fc_time = end_fc - start_fc
-
-        with open(filename, "w", encoding="utf-8") as f:
-
-            # =====================
-            # FACTS
-            # =====================
-            f.write("===== FACTS =====\n")
-            for fact in sorted(kb.facts, key=str):
-                f.write(f"{fact}\n")
-
-            f.write(f"\nTotal facts: {len(kb.facts)}\n")
-
-            # =====================
-            # RULES
-            # =====================
-            f.write("\n===== RULES =====\n")
-            for rule in kb.rules:
-                f.write(f"{rule}\n")
-
-            f.write(f"\nTotal rules: {len(kb.rules)}\n")
-
-        print(f"KB written to {filename}")
-        print(f"Build KB: {build_time:.6f}s")
-        print(f"Forward chaining: {fc_time:.6f}s")
-        print(f"Total: {(build_time + fc_time):.6f}s")
 
     def solve_logic(self, data, method, progress_callback=None):
         if self.stop_flag:
@@ -519,6 +458,7 @@ class MainWindow(QMainWindow):
         self.set_controls_enabled(False)
         self.stop_button.setVisible(True)
         self.footer.setText("Solving...")
+        self.reset_log()
 
         def on_done(result_tuple):
             result, stats = result_tuple
@@ -547,7 +487,7 @@ class MainWindow(QMainWindow):
 
             self.set_controls_enabled(True)
             self.stop_button.setVisible(False)
-            QTimer.singleShot(3000, lambda: self.footer.setText("Ready"))
+            QTimer.singleShot(3000, lambda: self.footer.setText("Ready!"))
 
         self.thread, self.worker = run_in_thread(
             self,
@@ -561,34 +501,89 @@ class MainWindow(QMainWindow):
         for w in self.controls:
             w.setEnabled(enabled)
 
+            effect = QGraphicsOpacityEffect()
+
+            if enabled:
+                effect.setOpacity(1.0)   # bình thường
+            else:
+                effect.setOpacity(0.4)   # mờ đi
+
+            w.setGraphicsEffect(effect)
+
     def stop_solving(self):
         self.stop_flag = True
         self.stop_button.setVisible(False)
         self.footer.setText("Ready")
+        self.set_controls_enabled(True)
+
 
     def format_stats(self, method, stats):
-        return f"""
-        ==============================
-        🧠 Algorithm: {method}
+        return textwrap.dedent(f"""
+            ==============================
+            🧠 Algorithm: {method}
 
-        ⏱ Runtime        : {stats["runtime"]:.6f} s
-        📦 Memory Peak   : {stats["memory"] / 1024:.2f} KB
-        🌳 Nodes Expanded: {stats["nodes_expanded"]}
+            ⏱ Runtime        : {stats["runtime"]:.6f} s
+            📦 Memory Peak   : {stats["memory"] / 1024:.2f} KB
+            🌳 Nodes Expanded: {stats["nodes_expanded"]}
 
-        ==============================
-        """.strip()
+            ==============================
+        """).strip()
 
     def reset_log(self):
         self.log_box.clear()
         self.log_box.setPlaceholderText("Log output...")
 
     def start_animation(self):
-        if not self.trace:
+        if self.data.n >=5:
+            self.footer.setText("Visualization only support 3x3 and 4x4 grid.")
+            QTimer.singleShot(3000, lambda: self.footer.setText("Ready!"))
+
+        # ===== STOP =====
+        if self.is_running:
+            self.timer.stop()
+            self.is_running = False
+
+            self.set_controls_enabled(True)
+
+            # đổi lại nút
+            self.run_animation_button.setText("Run Animation")
+            self.run_animation_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #38bdf8;
+                    color: #020617;
+                    border-radius: 10px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #0ea5e9;
+                }
+            """)
             return
 
+        # ===== RUN =====
+        if not self.trace:
+            return
+        self.footer.setText("Running...")
         self.load_board_from_file(self.file_box.currentText())
-        self.trace_index = 0      
-        self.timer.start(200)      
+        self.trace_index = 0
+        self.set_controls_enabled(False)
+
+        self.timer.start(200)
+        self.is_running = True
+
+        # đổi nút thành STOP
+        self.run_animation_button.setText("Stop")
+        self.run_animation_button.setStyleSheet("""
+            QPushButton {
+                background-color: #ef4444;
+                color: white;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #dc2626;
+            }
+        """)     
 
     def play_step(self):
         if self.trace_index >= len(self.trace):
@@ -611,3 +606,23 @@ class MainWindow(QMainWindow):
         self.trace_index += 1
         if self.trace_index >= len(self.trace) and ("Backtracking" in method or "Brute Force" in method):
             QTimer.singleShot(150, self.board.highlight_goal)
+        if self.trace_index >= len(self.trace):
+            self.timer.stop()
+            self.is_running = False
+            self.set_controls_enabled(True)
+
+            # reset nút về RUN
+            self.run_animation_button.setText("Run Animation")
+            self.run_animation_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #38bdf8;
+                    color: #020617;
+                    border-radius: 10px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #0ea5e9;
+                }
+            """)
+            self.footer.setText("Ready!")
+            return
