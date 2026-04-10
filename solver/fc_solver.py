@@ -36,39 +36,53 @@ def check_conflict(kb):
 
     return False
 
-def update_domain_from_kb(domain, kb):
+def update_domain_from_kb(domain, kb, log_func=None):
     changed = False
+
     for fact in kb.facts:
         name, i, j, v = parse_fact(fact)
+
         if name == "NotVal":
             if v in domain[(i, j)]:
                 domain[(i, j)].remove(v)
                 changed = True
+
+                # 🔥 LOG REDUCE
+                if log_func:
+                    log_func("reduce", (i-1, j-1), v)
+
                 if len(domain[(i, j)]) == 0:
                     return False, True
+
         elif name == "Val":
             if domain[(i, j)] != {v}:
                 domain[(i, j)] = {v}
                 changed = True
 
-    # for (i, j), vals in domain.items():
-    #     if len(vals) == 0:
-    #         print(f"❌ EMPTY DOMAIN at ({i},{j})")
+                # 🔥 LOG ASSIGN TỪ PROPAGATE
+                if log_func:
+                    log_func("assign", (i-1, j-1), v)
+
     return changed, False
 
-def propagate_singletons(domain, kb):
+def propagate_singletons(domain, kb, log_func=None):
     added = False
+
     for (i, j), values in domain.items():
         if len(values) == 1:
             v = next(iter(values))
             fact = Val(i, j, v)
-            # Dùng add_fact để đẩy vào agenda cho forward chaining
+
             if fact not in kb.facts:
-                kb.add_fact(fact) 
+                kb.add_fact(fact)
                 added = True
+
+                if log_func:
+                    log_func("assign", (i-1, j-1), v)
+
     return added
 
-def propagate(kb, domain, depth=0, stop_check=None):
+def propagate(kb, domain, depth=0, stop_check=None, log_func = None):
     step = 0
 
     while True:
@@ -90,7 +104,7 @@ def propagate(kb, domain, depth=0, stop_check=None):
             return False
 
         # 3. update domain
-        changed_domain, contradiction = update_domain_from_kb(domain, kb)
+        changed_domain, contradiction = update_domain_from_kb(domain, kb, log_func)
 
         # if depth <= 2:
         #     print("Domain snapshot:")
@@ -101,7 +115,7 @@ def propagate(kb, domain, depth=0, stop_check=None):
             return False
 
         # 4. singleton
-        changed_singleton = propagate_singletons(domain, kb)
+        changed_singleton = propagate_singletons(domain, kb, log_func)
 
         # if changed_singleton and depth <= 2:
         #     print("   + Singleton → Val")
@@ -124,35 +138,46 @@ def select_mrv(domain):
             best_cell = cell
     return best_cell
 
-def backtrack(kb, domain, depth=0, stop_check=None):
+def backtrack(kb, domain, depth=0, stop_check=None, trace=None, enable_trace=True):
+    def _log(action, cell=None, value=None):
+        if enable_trace and trace is not None:
+            trace.append({
+                "action": action,
+                "cell": cell,
+                "value": value
+            })
+
     if stop_check and stop_check():
-        # print(f"[BT] ⛔ Stopped at depth {depth}")
         return None
-    # print(f"\n{'='*40}")
-    # print(f"[BT] Depth {depth}")
+
     global nodes_expanded
     nodes_expanded += 1
 
-    sizes = [len(v) for v in domain.values()]
-    # print(f"Domain size: min={min(sizes)}, max={max(sizes)}")
-
-    if not propagate(kb, domain, depth, stop_check):
-        # print(f"[BT] ❌ Fail at depth {depth}")
+    # ===== PROPAGATE =====
+    if not propagate(kb, domain, depth, stop_check, _log):
+        _log("fail")
         return None
 
+    # ===== GOAL =====
     if all(len(v) == 1 for v in domain.values()):
-        # print(f"[BT] ✅ SOLVED at depth {depth}")
+        for (i, j), values in domain.items():
+            _log("assign", (i-1, j-1), next(iter(values)))
+        _log("goal")
         return domain
 
+    # ===== CHỌN BIẾN =====
     cell = select_mrv(domain)
     if not cell:
         return None
 
     i, j = cell
-    # print(f"[BT] Choose ({i},{j}) = {domain[cell]}")
 
-    for v in sorted(domain[cell]):
-        # print(f"[BT] → TRY ({i},{j}) = {v}")
+    values = list(sorted(domain[cell]))
+    for v in values:
+        if stop_check and stop_check():
+            return None
+
+        _log("assign", (i-1, j-1), v)
 
         new_kb = kb.copy()
         new_domain = deepcopy(domain)
@@ -160,26 +185,46 @@ def backtrack(kb, domain, depth=0, stop_check=None):
         new_domain[(i, j)] = {v}
         new_kb.add_fact(Val(i, j, v))
 
-        result = backtrack(new_kb, new_domain, depth+1)
+        result = backtrack(
+            new_kb,
+            new_domain,
+            depth + 1,
+            stop_check,
+            trace,
+            enable_trace
+        )
 
         if result:
             return result
 
-        # print(f"[BT] ← BACKTRACK ({i},{j}) = {v}")
+        _log("backtrack", (i-1, j-1), v)
 
     return None
 
-def fc_solve(data, stop_check=None):
+def fc_solve(data, stop_check=None, enable_trace=True):
     global nodes_expanded
     nodes_expanded = 0
+
+    # 🔥 AUTO DISABLE TRACE
+    if data.n >= 5:
+        enable_trace = False
+
+    trace = [] if enable_trace else None
 
     tracemalloc.start()
     start_time = time.perf_counter()
 
     domain = domain_init(data)
     kb = build_kb(data)
-    depth = 0
-    result = backtrack(kb, domain,depth, stop_check)
+
+    result = backtrack(
+        kb,
+        domain,
+        depth=0,
+        stop_check=stop_check,
+        trace=trace,
+        enable_trace=enable_trace
+    )
 
     end_time = time.perf_counter()
     current, peak = tracemalloc.get_traced_memory()
@@ -189,7 +234,8 @@ def fc_solve(data, stop_check=None):
         return None, {
             "runtime": end_time - start_time,
             "memory": peak,
-            "nodes_expanded": nodes_expanded
+            "nodes_expanded": nodes_expanded,
+            "trace": trace
         }
 
     for (i, j), values in result.items():
@@ -198,7 +244,8 @@ def fc_solve(data, stop_check=None):
     return data, {
         "runtime": end_time - start_time,
         "memory": peak,
-        "nodes_expanded": nodes_expanded
+        "nodes_expanded": nodes_expanded,
+        "trace": trace
     }
 
 def parse_fact(fact):

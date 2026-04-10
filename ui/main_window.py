@@ -601,10 +601,13 @@ class MainWindow(QMainWindow):
 
         # ===== CHỌN CÁCH APPLY =====
         if "A*" in method:
+            self.board.prev_grid = None
             self.board.apply_step_astar(step)
-        # elif "Forward Chaining" in method:
-        #     self.board.apply_step_fc(step)
+        elif "Forward Chaining" in method:
+            self.board.apply_step_fc(step)
         else:
             self.board.apply_step(step)
 
         self.trace_index += 1
+        if self.trace_index >= len(self.trace) and ("Backtracking" in method or "Brute Force" in method):
+            QTimer.singleShot(150, self.board.highlight_goal)

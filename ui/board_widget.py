@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
-
+from PyQt6.QtCore import QTimer
 
 class BoardWidget(QWidget):
     def __init__(self, size=4):
@@ -25,6 +25,7 @@ class BoardWidget(QWidget):
         self.current_cell = None
 
         self.build_grid()
+        self.prev_grid = None
 
     def build_grid(self):
         N = self.size
@@ -52,7 +53,7 @@ class BoardWidget(QWidget):
                         QLineEdit:hover {
                             border: 2px solid #38bdf8;
                                                 }
-                                                /* highlight riêng */
+                        /* highlight riêng */
                         QLineEdit[highlight="true"] {
                             border: 3px solid #facc15;
                         }
@@ -130,7 +131,7 @@ class BoardWidget(QWidget):
                         QLineEdit:hover {
                             border: 2px solid #38bdf8;
                                                 }
-                                                /* highlight riêng */
+                        /* highlight riêng */
                         QLineEdit[highlight="true"] {
                             border: 3px solid #facc15;
                         }
@@ -158,7 +159,7 @@ class BoardWidget(QWidget):
                         QLineEdit:hover {
                             border: 2px solid #38bdf8;
                                                 }
-                                                /* highlight riêng */
+                        /* highlight riêng */
                         QLineEdit[highlight="true"] {
                             border: 3px solid #facc15;
                         }
@@ -172,6 +173,32 @@ class BoardWidget(QWidget):
                         QLineEdit[state="reject"] {
                             background-color: #ef4444;
                             color: white;
+                        }
+                                       
+                        QLineEdit[state="pop"] {
+                            background-color: #4ade80;  /* sáng hơn */
+                            border: 3px solid #bbf7d0;
+                        }
+                                       
+                        /* ===== EXPAND (node đang mở rộng) ===== */
+                        QLineEdit[state="expand"] {
+                            background-color: #60a5fa;
+                            color: black;
+                        }
+
+                        /* ===== CANDIDATE (trong open set) ===== */
+                        QLineEdit[state="candidate"] {
+                            background-color: #a78bfa;
+                            color: black;
+                        }
+
+                        /* ===== GOAL ===== */
+                        QLineEdit[state="goal"] {
+                            background-color: #0f172a;
+                            color: #38bdf8;
+                            border: 2px solid #3b82f6;
+                            border-radius: 8px;
+                            font-weight: bold;
                         }
                     """)
 
@@ -261,7 +288,13 @@ class BoardWidget(QWidget):
         # ===== APPLY ACTION =====
         if action == "assign":
             cell.setText(str(val))
-            cell.setProperty("state", "assign")
+
+            cell.setProperty("state", "pop")
+            cell.style().unpolish(cell)
+            cell.style().polish(cell)
+
+            QTimer.singleShot(120, lambda: self._finish_assign(cell))
+
 
         elif action == "reject":
             cell.setProperty("state", "reject")
@@ -279,43 +312,72 @@ class BoardWidget(QWidget):
         grid = step.get("grid")
         info = step.get("info", {})
 
-        # ===== RESET toàn bộ highlight cũ =====
-        for cell in self.cells.values():
-            cell.setProperty("state", None)
-            cell.style().unpolish(cell)
-            cell.style().polish(cell)
+        focus_cells = []   # chỉ những cell cần highlight
 
-        # ===== UPDATE GRID =====
+        # ===== UPDATE GRID (KHÔNG STYLE) =====
         if grid:
             for r in range(len(grid)):
                 for c in range(len(grid)):
-                    cell = self.cells[(r, c)]
                     val = grid[r][c]
+                    cell = self.cells[(r, c)]
 
-                    if val != 0:
-                        cell.setText(str(val))
-                    else:
-                        cell.setText("")
+                    # chỉ update nếu khác để tránh repaint
+                    if self.prev_grid is None or val != self.prev_grid[r][c]:
+                        cell.setText(str(val) if val != 0 else "")
 
-        # ===== HIGHLIGHT theo action =====
-        if action == "pop":
-            # node đang được chọn (quan trọng nhất)
-            for cell in self.cells.values():
-                cell.setProperty("state", "highlight")
+                        # lưu lại cell thay đổi
+                        focus_cells.append(cell)
 
-        elif action == "expand":
-            for cell in self.cells.values():
-                cell.setProperty("state", "expand")
+        # ===== RESET STATE CŨ (NHẸ NHÀNG) =====
+        if hasattr(self, "last_highlight"):
+            for cell in self.last_highlight:
+                cell.setProperty("state", None)
+                cell.style().unpolish(cell)
+                cell.style().polish(cell)
+
+        new_highlight = []
+
+        # ===== APPLY VISUAL (CHỈ 1 ÍT CELL) =====
+        if action == "expand":
+            # highlight 1 cell đầu tiên (node đang expand)
+            if focus_cells:
+                c = focus_cells[0]
+                c.setProperty("state", "expand")
+                new_highlight.append(c)
 
         elif action == "push":
-            for cell in self.cells.values():
-                cell.setProperty("state", "candidate")
+            # highlight tối đa 2-3 cell thôi (frontier)
+            for c in focus_cells[:3]:
+                c.setProperty("state", "candidate")
+                new_highlight.append(c)
+
+        elif action == "pop":
+            if focus_cells:
+                c = focus_cells[0]
+                c.setProperty("state", "current")
+                new_highlight.append(c)
+
+                QTimer.singleShot(80, lambda c=c: self._do_pop(c))
 
         elif action == "goal":
-            for cell in self.cells.values():
-                cell.setProperty("state", "goal")
+            for c in self.cells.values():
+                c.setProperty("state", "goal")
+                c.style().unpolish(c)
+                c.style().polish(c)
+            self.last_highlight = []
+            return
 
-        # ===== OPTIONAL: hiển thị info =====
+        # ===== APPLY STYLE (CHỈ CELL CẦN) =====
+        for cell in new_highlight:
+            cell.style().unpolish(cell)
+            cell.style().polish(cell)
+
+        self.last_highlight = new_highlight
+
+        # ===== SAVE GRID =====
+        self.prev_grid = [row[:] for row in grid] if grid else None
+
+        # ===== LOG =====
         if hasattr(self, "log_box") and info:
             g = info.get("g")
             h = info.get("h")
@@ -330,8 +392,137 @@ class BoardWidget(QWidget):
                 msg += f" f={f}"
 
             self.log_box.append(msg)
+        
+    def reset_previous_cell(self, new_cell):
+        if not self.current_cell:
+            return
 
-        # ===== REFRESH UI =====
+        if self.current_cell == new_cell:
+            return
+
+        self.current_cell.setProperty("state", None)
+        self.current_cell.style().unpolish(self.current_cell)
+        self.current_cell.style().polish(self.current_cell)
+
+
+    def highlight_cell(self, cell):
+        """Highlight cell đang xét"""
+        cell.setProperty("state", "highlight")
+        cell.style().unpolish(cell)
+        cell.style().polish(cell)
+
+        self.current_cell = cell
+
+
+    def apply_action(self, cell, action, value):
+        """Apply logic chính cho từng action"""
+
+        if action == "assign":
+            cell.setText(str(value))
+
+            cell.setProperty("state", "pop")
+            cell.style().unpolish(cell)
+            cell.style().polish(cell)
+
+            QTimer.singleShot(120, lambda: self._finish_assign(cell))
+
+
+        elif action == "backtrack":
+            cell.setText("")
+            cell.setProperty("state", None)
+
+        elif action == "reject":
+            cell.setProperty("state", "reject")
+
+        elif action == "fail":
+            cell.setProperty("state", "reject")
+
+        elif action == "goal":
+            for cell in self.cells.values():
+                cell.setProperty("state", "goal")
+
+                cell.style().unpolish(cell)
+                cell.style().polish(cell)
+
+            return
+
+        # refresh
+        cell.style().unpolish(cell)
+        cell.style().polish(cell)
+
+
+    def handle_global_action(self, action):
+        """Xử lý step không có cell"""
+        if action == "goal":
+            for cell in self.cells.values():
+                cell.setProperty("state", "goal")
+                cell.style().unpolish(cell)
+                cell.style().polish(cell)
+
+        elif action == "fail":
+            print("GLOBAL FAIL")
+
+
+    def apply_step_fc(self, step):
+        """Main entry – dễ debug"""
+
+        print("STEP:", step)  
+
+        action = step.get("action")
+        cell_pos = step.get("cell")
+        value = step.get("value")
+        
+        if action == "goal":
+            # tô màu
+            for cell in self.cells.values():
+                cell.setProperty("state", "goal")
+                cell.style().unpolish(cell)
+                cell.style().polish(cell)
+
+            if hasattr(self, "final_grid") and self.final_grid:
+                for (r, c), val in self.final_grid.items():
+                    cell = self.cells[(r, c)]
+                    cell.setText(str(val))
+
+            return
+
+        # ===== GLOBAL STEP =====
+        if cell_pos is None:
+            self.handle_global_action(action)
+            return
+
+        # ===== GET CELL =====
+        try:
+            r, c = cell_pos
+            cell = self.cells[(r, c)]
+        except Exception as e:
+            print("CELL ERROR:", step, e)
+            return
+
+        # ===== RESET OLD =====
+        self.reset_previous_cell(cell)
+
+        # ===== HIGHLIGHT =====
+        self.highlight_cell(cell)
+
+        # ===== APPLY ACTION =====
+        self.apply_action(cell, action, value)
+    
+    def _finish_assign(self, cell):
+        cell.setProperty("state", "assign")
+
+        cell.style().unpolish(cell)
+        cell.style().polish(cell)
+
+    def _do_pop(self, cell):
+        cell.setProperty("state", "pop")
+        cell.style().unpolish(cell)
+        cell.style().polish(cell)
+
+        QTimer.singleShot(120, lambda c=cell: self._finish_assign(c))
+    
+    def highlight_goal(self):
         for cell in self.cells.values():
+            cell.setProperty("state", "goal")
             cell.style().unpolish(cell)
             cell.style().polish(cell)

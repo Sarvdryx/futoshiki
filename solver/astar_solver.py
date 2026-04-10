@@ -61,7 +61,7 @@ class AStarSolver:
                 g = cost(child)
                 h = self.heuristic.compute(child, data)
                 f_child = g + h
-
+                
                 self._log("push", child, {"g": g, "h": h, "f": f_child})
 
                 heapq.heappush(pq, (f_child, child))
