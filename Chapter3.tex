@@ -151,6 +151,167 @@ Forward Chaining giúp lan truyền ràng buộc rất nhanh và giảm đáng k
 
 Vì vậy, việc kết hợp với Backtracking là cần thiết để đảm bảo tìm được nghiệm đầy đủ cho mọi test case.
 
+\subsection{Mã giả thuật toán}
+\begin{algorithm}[H]
+\footnotesize
+\caption{FC Solver cho Futoshiki}
+\KwIn{Dữ liệu bài toán $data$, hàm dừng $stop\_check$, cờ ghi log $enable\_trace$}
+\KwOut{Nghiệm $solution$ và thống kê $stats$}
+
+$nodes\_expanded \leftarrow 0$ \;
+
+\If{$data.n \ge 5$}{
+    $enable\_trace \leftarrow False$ \;
+}
+
+\If{$enable\_trace$}{
+    $trace \leftarrow []$ \;
+}
+\Else{
+    $trace \leftarrow \varnothing$ \;
+}
+
+Khởi tạo thời gian $time\_start$ \;
+Bắt đầu đo bộ nhớ \;
+
+$domain \leftarrow$ domain\_init($data$) \;
+$kb \leftarrow$ build\_kb($data$) \;
+
+$result \leftarrow$ backtrack($kb$, $domain$, $0$, $stop\_check$, $trace$, $enable\_trace$) \;
+
+Ghi nhận $time\_end$, bộ nhớ sử dụng \;
+
+$stats \leftarrow \{runtime, memory, nodes\_expanded, trace\}$ \;
+
+\If{$result = \varnothing$}{
+    \Return $(\varnothing, stats)$ \;
+}
+
+\For{mỗi ô $(i,j)$}{
+    $v \leftarrow$ phần tử duy nhất trong $result(i,j)$ \;
+    $data.grid[i-1][j-1] \leftarrow v$ \;
+}
+
+\Return $(data, stats)$ \;
+\end{algorithm}
+
+\begin{algorithm}[H]
+\footnotesize
+\caption{Backtracking với FC + MRV}
+\KwIn{$kb$, $domain$, $depth$, $stop\_check$, $trace$, $enable\_trace$}
+\KwOut{Domain hoàn chỉnh hoặc $\varnothing$}
+
+\If{$stop\_check()$}{
+    \Return $\varnothing$ \;
+}
+
+$nodes\_expanded \leftarrow nodes\_expanded + 1$ \;
+
+$success \leftarrow$ propagate($kb$, $domain$, $depth$, $stop\_check$) \;
+
+\If{NOT $success$}{
+    \Return $\varnothing$ \;
+}
+
+Kiểm tra tất cả ô đã xác định chưa \;
+
+\If{mọi ô chỉ có 1 giá trị}{
+    \Return $domain$ \;
+}
+
+$cell \leftarrow$ select\_mrv($domain$) \;
+
+\If{$cell = \varnothing$}{
+    \Return $\varnothing$ \;
+}
+
+$(i,j) \leftarrow cell$ \;
+$values \leftarrow$ các giá trị trong $domain(i,j)$ (đã sắp xếp) \;
+
+\For{mỗi $v \in values$}{
+
+    \If{$stop\_check()$}{
+        \Return $\varnothing$ \;
+    }
+
+    $new\_kb \leftarrow$ copy($kb$) \;
+    $new\_domain \leftarrow$ deepcopy($domain$) \;
+
+    $new\_domain(i,j) \leftarrow \{v\}$ \;
+    Thêm $Val(i,j,v)$ vào $new\_kb$ \;
+
+    $result \leftarrow$ backtrack($new\_kb$, $new\_domain$, $depth+1$, $stop\_check$, $trace$, $enable\_trace$) \;
+
+    \If{$result \neq \varnothing$}{
+        \Return $result$ \;
+    }
+}
+
+\Return $\varnothing$ \;
+\end{algorithm}
+
+\begin{algorithm}[H]
+\footnotesize
+\caption{Chọn biến theo MRV}
+\KwIn{$domain$}
+\KwOut{Ô $(i,j)$ có domain nhỏ nhất}
+
+$best\_cell \leftarrow \varnothing$ \;
+$best\_size \leftarrow \infty$ \;
+
+\For{mỗi ô $cell$}{
+    $values \leftarrow domain(cell)$ \;
+
+    \If{$|values| > 1$ và $|values| < best\_size$}{
+        $best\_size \leftarrow |values|$ \;
+        $best\_cell \leftarrow cell$ \;
+    }
+}
+
+\Return $best\_cell$ \;
+\end{algorithm}
+
+\begin{algorithm}[H]
+\footnotesize
+\caption{Propagation (Forward Checking)}
+\KwIn{$kb$, $domain$, $depth$, $stop\_check$}
+\KwOut{True nếu thành công, False nếu mâu thuẫn}
+
+$step \leftarrow 0$ \;
+
+\While{True}{
+
+    \If{$stop\_check()$}{
+        \Return False \;
+    }
+
+    $old\_domain \leftarrow$ deepcopy($domain$) \;
+
+    forward\_chaining($kb$) \;
+
+    \If{phát hiện xung đột}{
+        \Return False \;
+    }
+
+    Cập nhật $domain$ từ $kb$ \;
+
+    \If{có domain rỗng}{
+        \Return False \;
+    }
+
+    Thêm các singleton vào $kb$ \;
+
+    \If{$domain = old\_domain$ và không có singleton mới}{
+        \textbf{break}
+    }
+
+    $step \leftarrow step + 1$ \;
+}
+
+\Return True \;
+\end{algorithm}
+
+
 \section{Backward Chaining}
 
 Nếu Forward Chaining là phương pháp suy diễn tiến từ các dữ kiện ban đầu để sinh ra các sự thật mới, thì \textbf{Backward Chaining} là cách suy diễn theo hướng ngược lại: bắt đầu từ một mục tiêu cần kiểm tra và truy ngược về các luật và sự thật trong cơ sở tri thức (KB).
