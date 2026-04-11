@@ -5,3 +5,225 @@
   {Phần~\thechapter}{0pt}{\raggedright}
 
 \chapter{Phân tích heuristic (A*)}
+
+\section{Heuristic 1 -- Đếm vi phạm ràng buộc}
+
+\subsection{Ý tưởng}
+
+Heuristic1 được xây dựng dựa trên việc kiểm tra các ràng buộc bất đẳng thức trong bảng Futoshiki.
+
+Ý tưởng chính là:
+\begin{itemize}
+    \item Duyệt qua từng ô $(i, j)$ trong bảng.
+    \item Kiểm tra tất cả các ràng buộc liên quan đến ô đó (ngang và dọc).
+    \item Nếu tồn tại ràng buộc:
+    \begin{itemize}
+        \item bị vi phạm, hoặc
+        \item chưa xác định (tồn tại ô có giá trị $0$),
+    \end{itemize}
+    thì ô đó được xem là \textbf{vi phạm}.
+\end{itemize}
+
+Giá trị heuristic là tổng số ô vi phạm. Trạng thái có ít vi phạm hơn sẽ được ưu tiên mở rộng.
+
+\subsection{Định nghĩa}
+
+\[
+h(n) = \text{số ô vi phạm ràng buộc}
+\]
+
+\subsection{Mã giả}
+
+\begin{verbatim}
+FUNCTION Heuristic1(state, data):
+    count ← 0
+
+    FOR mỗi ô (i, j):
+        violated ← FALSE
+
+        FOR mỗi ràng buộc liên quan đến (i, j):
+            IF ràng buộc không thỏa hoặc có ô chưa gán:
+                violated ← TRUE
+                BREAK
+
+        IF violated:
+            count ← count + 1
+
+    RETURN count
+\end{verbatim}
+
+\subsection{Chứng minh tính admissible}
+
+Gọi:
+\begin{itemize}
+    \item $V$ là tập các ô bị vi phạm
+    \item $|V|$ là số lượng ô vi phạm
+\end{itemize}
+
+Ta có:
+\begin{itemize}
+    \item Mỗi ô vi phạm cần được xử lý ít nhất một lần để thỏa mãn ràng buộc.
+    \item Mỗi bước gán chỉ có thể thay đổi một ô.
+\end{itemize}
+
+Do đó, chi phí tối thiểu để đạt nghiệm thỏa mãn:
+
+\[
+h^*(n) \ge |V|
+\]
+
+Trong khi heuristic:
+
+\[
+h(n) = |V|
+\]
+
+Suy ra:
+
+\[
+h(n) \le h^*(n)
+\]
+
+\[
+\Rightarrow \text{Heuristic1 là admissible}
+\]
+
+\subsection{Ví dụ minh họa}
+
+Xét bài toán $3 \times 3$:
+
+\begin{verbatim}
+Grid:
+0   2   0
+0   0   0
+0   0   0
+\end{verbatim}
+
+Các ràng buộc:
+\begin{itemize}
+    \item $(1,1) < (1,2)$
+    \item $(1,2) > (2,2)$
+    \item $(2,1) > (3,1)$
+\end{itemize}
+
+Áp dụng heuristic:
+
+Các ô vi phạm gồm:
+\[
+(1,1), (1,2), (2,1), (2,2)
+\]
+
+Do đó:
+\[
+h(n) = 4
+\]
+
+\subsection{Nhận xét}
+
+\begin{itemize}
+    \item Ưu điểm: đơn giản, dễ cài đặt, admissible.
+    \item Nhược điểm: đánh giá còn thô, chưa phản ánh chính xác mức độ gần nghiệm.
+\end{itemize}
+
+% ==================================================
+
+\section{Heuristic 2 -- Dựa trên AC-3 và miền giá trị}
+
+\subsection{Ý tưởng}
+
+Heuristic2 sử dụng thuật toán lan truyền ràng buộc \textbf{AC-3} để thu hẹp miền giá trị (domain) của các biến trước khi đánh giá trạng thái.
+
+Ý tưởng:
+\begin{itemize}
+    \item Áp dụng AC-3 để loại bỏ các giá trị không hợp lệ.
+    \item Nếu tồn tại biến có domain rỗng $\rightarrow$ trạng thái không khả thi.
+    \item Ngược lại, đếm số biến vẫn còn nhiều hơn một giá trị khả dĩ.
+\end{itemize}
+
+\subsection{Định nghĩa}
+
+\[
+h(n) =
+\begin{cases}
+\infty & \text{nếu tồn tại domain rỗng} \\
+\text{số biến có } |domain| > 1 & \text{ngược lại}
+\end{cases}
+\]
+
+\subsection{Mã giả}
+
+\begin{verbatim}
+FUNCTION Heuristic2(state, data):
+    domains ← copy(state.domains)
+
+    IF AC3(domains) == FALSE:
+        RETURN Infinity
+
+    count ← 0
+    FOR mỗi domain d:
+        IF size(d) > 1:
+            count ← count + 1
+
+    RETURN count
+\end{verbatim}
+
+\subsection{Giải thích}
+
+Sau khi áp dụng AC-3:
+\begin{itemize}
+    \item Nếu một domain bị rỗng, điều đó cho thấy trạng thái hiện tại không thể dẫn đến nghiệm hợp lệ.
+    \item Nếu tất cả domain đều hợp lệ, heuristic sẽ đo số lượng biến chưa được xác định (có nhiều hơn một giá trị).
+\end{itemize}
+
+Do đó:
+\begin{itemize}
+    \item Giá trị heuristic càng nhỏ $\rightarrow$ trạng thái càng gần nghiệm.
+    \item Giá trị lớn $\rightarrow$ còn nhiều biến chưa chắc chắn.
+\end{itemize}
+
+\subsection{Ví dụ minh họa}
+
+Sau khi áp dụng AC-3 cho ví dụ trên, ta có:
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Ô & Domain & Size \\
+\hline
+(1,1) & \{1\} & 1 \\
+(1,2) & \{2\} & 1 \\
+(1,3) & \{1,2,3\} & 3 \\
+(2,1) & \{1,2,3\} & 3 \\
+(2,2) & \{1\} & 1 \\
+(2,3) & \{1,2,3\} & 3 \\
+(3,1) & \{1,2,3\} & 3 \\
+(3,2) & \{1,2,3\} & 3 \\
+(3,3) & \{1,2,3\} & 3 \\
+\hline
+\end{tabular}
+\end{center}
+
+Các ô có $|domain| > 1$ gồm:
+\[
+(1,3), (2,1), (2,3), (3,1), (3,2), (3,3)
+\]
+
+Do đó:
+\[
+h(n) = 6
+\]
+
+\subsection{Nhận xét}
+
+\begin{itemize}
+    \item Ưu điểm:
+    \begin{itemize}
+        \item Sử dụng AC-3 giúp phát hiện sớm các trạng thái vô nghiệm.
+        \item Đánh giá chính xác hơn mức độ ``chưa hoàn chỉnh'' của trạng thái.
+    \end{itemize}
+    
+    \item Nhược điểm:
+    \begin{itemize}
+        \item Chi phí tính toán cao hơn do phải chạy AC-3.
+    \end{itemize}
+\end{itemize}

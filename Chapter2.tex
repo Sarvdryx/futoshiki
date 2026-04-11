@@ -182,3 +182,34 @@ Val(i,j,f(i,j))
 \section{Kết luận}
 
 Hệ tiên đề FOL gồm 10 tiên đề mô hình hóa đầy đủ luật chơi Futoshiki. Chỉ có một tiên đề cần Skolem hóa (A1), các tiên đề còn lại thuần phổ dụng. Sau khi chuyển sang CNF, hệ có thể sử dụng cho SAT solver hoặc suy diễn logic.
+
+\section{Xây dựng cơ sở tri thức (Knowledge Base)}
+
+Cơ sở tri thức (KB) trong bài toán gồm hai thành phần chính:
+
+\begin{itemize}
+    \item \textbf{Facts (Sự thật):} Là các thông tin đúng ngay từ đầu, ví dụ như các ô đã cho sẵn giá trị hoặc các ràng buộc bất đẳng thức trên bảng.
+    
+    \item \textbf{Rules (Luật):} Có dạng:
+    \[
+    p_1 \wedge p_2 \wedge \dots \wedge p_n \Rightarrow q
+    \]
+    trong đó các $p_i$ là điều kiện và $q$ là kết luận.
+\end{itemize}
+
+Ngoài ra, mỗi luật được gắn thêm một biến đếm \texttt{count} để theo dõi số lượng điều kiện chưa được thỏa mãn, giúp tối ưu quá trình suy diễn.
+
+Từ dữ liệu đầu vào của bảng $N \times N$, nhóm tự động sinh ra KB dựa trên các loại luật sau:
+
+\begin{itemize}
+    \item \textbf{Dữ kiện ban đầu:} Thêm các fact như \texttt{Given(i,j,v)} cho các ô đã có sẵn giá trị, và các ràng buộc như \texttt{LessH}, \texttt{GreaterV}, \dots
+    
+    \item \textbf{Luật gán giá trị:}
+    \[
+    Given(i,j,v) \Rightarrow Val(i,j,v)
+    \]
+    
+    \item \textbf{Luật ràng buộc hàng và cột:} Nếu một ô đã nhận giá trị $v$ thì các ô khác cùng hàng/cột không được nhận giá trị đó.
+    
+    \item \textbf{Luật bất đẳng thức:} Dựa vào các dấu $<$, $>$ trên bảng để loại trừ các giá trị không hợp lệ của các ô liên quan.
+\end{itemize}

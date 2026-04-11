@@ -6,38 +6,8 @@
 
 \chapter{Các thuật toán suy diễn}
 \section{Forward Chaining}
-\subsection{Xây dựng cơ sở tri thức (Knowledge Base)}
 
-Cơ sở tri thức (KB) trong bài toán gồm hai thành phần chính:
-
-\begin{itemize}
-    \item \textbf{Facts (Sự thật):} Là các thông tin đúng ngay từ đầu, ví dụ như các ô đã cho sẵn giá trị hoặc các ràng buộc bất đẳng thức trên bảng.
-    
-    \item \textbf{Rules (Luật):} Có dạng:
-    \[
-    p_1 \wedge p_2 \wedge \dots \wedge p_n \Rightarrow q
-    \]
-    trong đó các $p_i$ là điều kiện và $q$ là kết luận.
-\end{itemize}
-
-Ngoài ra, mỗi luật được gắn thêm một biến đếm \texttt{count} để theo dõi số lượng điều kiện chưa được thỏa mãn, giúp tối ưu quá trình suy diễn.
-
-Từ dữ liệu đầu vào của bảng $N \times N$, nhóm tự động sinh ra KB dựa trên các loại luật sau:
-
-\begin{itemize}
-    \item \textbf{Dữ kiện ban đầu:} Thêm các fact như \texttt{Given(i,j,v)} cho các ô đã có sẵn giá trị, và các ràng buộc như \texttt{LessH}, \texttt{GreaterV}, \dots
-    
-    \item \textbf{Luật gán giá trị:}
-    \[
-    Given(i,j,v) \Rightarrow Val(i,j,v)
-    \]
-    
-    \item \textbf{Luật ràng buộc hàng và cột:} Nếu một ô đã nhận giá trị $v$ thì các ô khác cùng hàng/cột không được nhận giá trị đó.
-    
-    \item \textbf{Luật bất đẳng thức:} Dựa vào các dấu $<$, $>$ trên bảng để loại trừ các giá trị không hợp lệ của các ô liên quan.
-\end{itemize}
-
-\subsection{Thuật toán suy diễn}
+\subsection{Cơ chế hoạt động}
 
 Thuật toán được cài đặt theo hướng sử dụng \textbf{hàng đợi (agenda)} để quản lý các fact cần xử lý. Đồng thời, nhóm sử dụng thêm một cấu trúc chỉ mục (tương tự hash map) để nhanh chóng xác định các luật bị ảnh hưởng khi một fact mới xuất hiện.
 
@@ -175,27 +145,6 @@ Chọn ô $(2,2)$ để thử giá trị.
 
 Quá trình này tiếp tục cho đến khi tất cả các ô đều được gán giá trị.
 
-\textbf{Nhận xét:}
-
-Ví dụ trên cho thấy:
-\begin{itemize}
-    \item Forward Chaining giúp xác định nhanh các ô như $(1,1)$ mà không cần thử.
-    \item MRV giúp chọn đúng ô ``khó'' để thử trước, giảm số nhánh cần duyệt.
-    \item Sự kết hợp hai phương pháp giúp giảm đáng kể không gian tìm kiếm so với Backtracking thuần túy.
-\end{itemize}
-
-\begin{itemize}
-    \item Ban đầu, đưa các fact \texttt{Given(1,1,1)} và ràng buộc vào hàng đợi.
-    
-    \item Từ \texttt{Given(1,1,1)} suy ra \texttt{Val(1,1,1)}.
-    
-    \item Từ \texttt{Val(1,1,1)}, áp dụng các luật ràng buộc để loại bỏ giá trị $1$ khỏi các ô cùng hàng và cột.
-    
-    \item Các fact dạng \texttt{NotVal} tiếp tục kích hoạt các luật khác, dần dần thu hẹp miền giá trị của các ô còn lại.
-    
-    \item Cuối cùng, khi mỗi ô chỉ còn một giá trị hợp lệ, ta thu được nghiệm hoàn chỉnh của bảng.
-\end{itemize}
-
 \subsection{Nhận xét}
 
 Forward Chaining giúp lan truyền ràng buộc rất nhanh và giảm đáng kể không gian tìm kiếm ban đầu. Tuy nhiên, do chỉ dựa vào suy diễn nên thuật toán có thể bị dừng sớm khi không còn luật nào áp dụng được.
@@ -204,4 +153,150 @@ Vì vậy, việc kết hợp với Backtracking là cần thiết để đảm 
 
 \section{Backward Chaining}
 
+Nếu Forward Chaining là phương pháp suy diễn tiến từ các dữ kiện ban đầu để sinh ra các sự thật mới, thì \textbf{Backward Chaining} là cách suy diễn theo hướng ngược lại: bắt đầu từ một mục tiêu cần kiểm tra và truy ngược về các luật và sự thật trong cơ sở tri thức (KB).
+
+Trong đồ án này, Backward Chaining không được dùng để giải toàn bộ bảng, mà chủ yếu đóng vai trò \textbf{hỗ trợ truy vấn và kiểm tra tính khả thi} của một giá trị tại một ô cụ thể.
+
+\subsection{Cơ chế hoạt động}
+
+Thuật toán được cài đặt dưới dạng hàm đệ quy \texttt{backward\_chain(kb, goal, visited, memo)}. Với một mục tiêu cần chứng minh, thuật toán thực hiện:
+
+\begin{itemize}
+    \item Nếu mục tiêu đã tồn tại trong tập \texttt{facts} $\rightarrow$ trả về \texttt{True}.
+    
+    \item Ngược lại, tìm các luật có kết luận trùng với mục tiêu thông qua cấu trúc \textbf{conclusion index} (giúp truy xuất nhanh thay vì duyệt toàn bộ luật).
+    
+    \item Với mỗi luật tìm được, lần lượt chứng minh các tiền đề của luật bằng cách gọi đệ quy.
+    
+    \item Nếu tất cả tiền đề đều đúng $\rightarrow$ mục tiêu đúng.
+\end{itemize}
+
+Để tối ưu, thuật toán sử dụng thêm hai kỹ thuật:
+
+\begin{itemize}
+    \item \textbf{Loop detection (\texttt{visited}):} Tránh lặp vô hạn khi các luật tạo thành vòng.
+    
+    \item \textbf{Memoization (\texttt{memo}):} Lưu kết quả các mục tiêu đã chứng minh để tránh tính lại nhiều lần.
+\end{itemize}
+
+\subsection{Ứng dụng trong truy vấn giá trị}
+
+Trong bài toán Futoshiki, Backward Chaining được dùng để xác định các giá trị khả thi cho một ô $(i,j)$.
+
+Thay vì chứng minh trực tiếp $Val(i,j,v)$, nhóm sử dụng cách tiếp cận đơn giản hơn:
+
+\begin{itemize}
+    \item Với mỗi giá trị $v \in \{1,\dots,N\}$:
+    \begin{itemize}
+        \item Kiểm tra xem có chứng minh được $NotVal(i,j,v)$ hay không.
+    \end{itemize}
+    
+    \item Nếu chứng minh được $\rightarrow$ loại $v$ khỏi domain.
+    
+    \item Nếu không chứng minh được $\rightarrow$ giữ $v$ là giá trị khả thi.
+\end{itemize}
+
+Cách làm này giúp loại bỏ các giá trị không hợp lệ mà không cần thử toàn bộ không gian tìm kiếm.
+
+\subsection{Ví dụ minh họa}
+
+Xét bài toán Futoshiki kích thước $3 \times 3$ với dữ liệu:
+
+\textbf{Grid:}
+\[
+\begin{bmatrix}
+0 & 2 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0
+\end{bmatrix}
+\]
+
+\textbf{Ràng buộc:}
+\begin{itemize}
+    \item $(1,1) < (1,2)$
+    \item $(1,2) > (2,2)$
+    \item $(2,1) > (3,1)$
+\end{itemize}
+
+Ta cần kiểm tra xem ô $(1,1)$ có thể nhận giá trị $2$ hay không.
+
+\textbf{Bước 1: Thiết lập truy vấn}
+
+Thay vì chứng minh trực tiếp $Val(1,1,2)$, ta kiểm tra:
+\[
+\texttt{backward\_chain}(kb, NotVal(1,1,2))
+\]
+
+\textbf{Bước 2: Tìm luật liên quan}
+
+Từ KB, tồn tại luật ràng buộc hàng:
+\[
+Val(1,2,2) \Rightarrow NotVal(1,1,2)
+\]
+
+\textbf{Bước 3: Chứng minh mục tiêu con}
+
+Để chứng minh $NotVal(1,1,2)$, ta cần chứng minh:
+\[
+Val(1,2,2)
+\]
+
+Từ dữ kiện đề bài:
+\[
+Given(1,2,2) \Rightarrow Val(1,2,2)
+\]
+
+Vì $Given(1,2,2)$ là fact $\rightarrow$ suy ra $Val(1,2,2)$ đúng.
+
+\textbf{Bước 4: Kết luận}
+
+Suy ra:
+\[
+NotVal(1,1,2) \text{ là True}
+\]
+
+Do đó, giá trị $2$ bị loại khỏi domain của ô $(1,1)$.
+
+\textbf{Kết luận cuối cùng:} Ô $(1,1)$ \textbf{không thể} nhận giá trị $2$.
+
+\textbf{Nhận xét:}
+
+Ví dụ trên cho thấy Backward Chaining có thể nhanh chóng loại bỏ các giá trị không hợp lệ bằng cách truy ngược từ mục tiêu. Thay vì thử gán trực tiếp, thuật toán chỉ cần kiểm tra các luật liên quan trong KB, giúp giảm đáng kể số phép thử trong quá trình giải bài toán.
+
+\textbf{Kết luận:} Ô $(1,2)$ không thể nhận giá trị $1$.
+
+\subsection{Nhận xét}
+
+Backward Chaining phù hợp cho các truy vấn cục bộ, đặc biệt khi cần kiểm tra nhanh tính hợp lệ của một giá trị. 
+
+Trong khi đó, Forward Chaining hiệu quả hơn trong việc lan truyền ràng buộc trên toàn bộ bảng. Việc kết hợp hai phương pháp giúp hệ thống vừa giảm được không gian tìm kiếm, vừa đảm bảo tính chính xác khi suy diễn.
+
 \section{Thuật toán A*}
+
+
+A* là một thuật toán tìm kiếm có thông tin (informed search), kết hợp giữa:
+\begin{itemize}
+    \item Chi phí đã đi từ trạng thái ban đầu đến trạng thái hiện tại.
+    \item Một hàm ước lượng chi phí còn lại để đạt tới trạng thái đích.
+\end{itemize}
+
+Tại mỗi bước, A* sẽ chọn trạng thái có giá trị nhỏ nhất theo hàm:
+\[
+f(n) = g(n) + h(n)
+\]
+trong đó:
+\begin{itemize}
+    \item $g(n)$: chi phí từ trạng thái ban đầu đến trạng thái $n$.
+    \item $h(n)$: hàm heuristic ước lượng chi phí từ $n$ đến trạng thái đích.
+\end{itemize}
+
+Trong bối cảnh bài toán Futoshiki, mỗi trạng thái tương ứng với một cấu hình của bảng (một phần hoặc toàn bộ các ô đã được gán giá trị). Quá trình tìm kiếm được thực hiện bằng cách:
+\begin{itemize}
+    \item Chọn một ô chưa được gán giá trị.
+    \item Thử gán một giá trị hợp lệ từ miền giá trị của ô đó.
+    \item Sinh ra trạng thái mới và đưa vào hàng đợi ưu tiên.
+\end{itemize}
+
+Thuật toán sử dụng một \textbf{priority queue} (hàng đợi ưu tiên) để luôn mở rộng trạng thái có giá trị $f(n)$ nhỏ nhất trước. Đồng thời, một tập \textbf{visited} được sử dụng để tránh việc lặp lại các trạng thái đã xét.
+
+A* đảm bảo tìm được nghiệm tối ưu nếu hàm heuristic thỏa mãn tính chất admissible. Tuy nhiên, hiệu quả của thuật toán phụ thuộc rất lớn vào chất lượng của heuristic được sử dụng. 
