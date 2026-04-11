@@ -482,7 +482,7 @@ class MainWindow(QMainWindow):
 
                 current_text = self.file_box.currentText()
                 output_file = current_text.replace("input", "output")
-                output_file = os.path.join("output", output_file)
+                output_file = os.path.join("output", "solution", output_file)
                 write_output_file(result, output_file)
 
             self.set_controls_enabled(True)
