@@ -39,32 +39,150 @@ Từ dữ liệu đầu vào của bảng $N \times N$, nhóm tự động sinh 
 
 \subsection{Thuật toán suy diễn}
 
-Thuật toán được cài đặt theo hướng sử dụng \textbf{hàng đợi (agenda)} để quản lý các fact cần xử lý. Đồng thời, nhóm sử dụng thêm một cấu trúc chỉ mục (giống hash map) để nhanh chóng tìm được những luật nào bị ảnh hưởng khi một fact mới xuất hiện.
+Thuật toán được cài đặt theo hướng sử dụng \textbf{hàng đợi (agenda)} để quản lý các fact cần xử lý. Đồng thời, nhóm sử dụng thêm một cấu trúc chỉ mục (tương tự hash map) để nhanh chóng xác định các luật bị ảnh hưởng khi một fact mới xuất hiện.
 
-Ý tưởng chính như sau:
+Ý tưởng chính của Forward Chaining là lặp lại quá trình suy diễn cho đến khi đạt trạng thái ổn định (không sinh thêm fact mới). Cụ thể:
 
 \begin{itemize}
-    \item Bắt đầu với danh sách các fact ban đầu.
+    \item Khởi tạo agenda với các fact ban đầu.
     \item Lặp lại:
     \begin{itemize}
-        \item Lấy một fact ra xử lý.
+        \item Lấy một fact từ agenda.
         \item Cập nhật các luật liên quan (giảm \texttt{count}).
-        \item Nếu một luật đã đủ điều kiện (\texttt{count} = 0), suy ra fact mới.
-        \item Đưa fact mới vào hàng đợi.
+        \item Nếu một luật thỏa mãn (\texttt{count} = 0), suy ra fact mới.
+        \item Thêm fact mới vào KB và đưa vào agenda.
     \end{itemize}
-    \item Kết thúc khi không còn fact nào để xử lý.
+    \item Dừng khi agenda rỗng (đạt điểm cố định).
 \end{itemize}
+
 Sau bước này:
 \begin{itemize}
-    \item Nếu bảng đã được điền đầy đủ $\rightarrow$ kết thúc.
-    \item Nếu chưa đầy đủ $\rightarrow$ chuyển sang Backtracking để thử và tìm nghiệm còn thiếu.
+    \item Nếu tất cả các ô đã được xác định giá trị $\rightarrow$ kết thúc.
+    \item Ngược lại $\rightarrow$ chuyển sang Backtracking để tiếp tục tìm nghiệm.
 \end{itemize}
+
+\subsection{Kết hợp Backtracking và heuristic MRV}
+
+Khi Forward Chaining không thể suy diễn thêm (đạt trạng thái ổn định) nhưng bài toán vẫn chưa giải xong, nhóm sử dụng \textbf{Backtracking} để tìm kiếm phần còn lại của nghiệm.
+
+Để giảm không gian tìm kiếm, thuật toán sử dụng heuristic \textbf{MRV (Minimum Remaining Values)}. Thay vì chọn ô theo thứ tự cố định, MRV ưu tiên chọn ô có domain nhỏ nhất (tức là ít giá trị khả thi nhất).
+
+Ý tưởng của MRV:
+\begin{itemize}
+    \item Ô có domain nhỏ thường bị ràng buộc nhiều hơn.
+    \item Dễ phát hiện mâu thuẫn sớm nếu chọn sai.
+    \item Giảm số nhánh cần duyệt trong cây tìm kiếm.
+\end{itemize}
+
+Quy trình Backtracking kết hợp MRV như sau:
+
+\begin{itemize}
+    \item Chọn ô $(i,j)$ chưa xác định với domain nhỏ nhất.
+    \item Thử lần lượt từng giá trị $v$ trong domain$(i,j)$:
+    \begin{itemize}
+        \item Gán $(i,j) = v$ và thêm fact \texttt{Val(i,j,v)} vào KB.
+        \item Chạy lại Forward Chaining để lan truyền ràng buộc.
+        \item Nếu xảy ra mâu thuẫn (domain rỗng hoặc conflict) thì quay lui và thử giá trị khác.
+    \end{itemize}
+\end{itemize}
+
+Nhờ kết hợp Forward Chaining và MRV, thuật toán vừa tận dụng được khả năng suy diễn để thu hẹp domain, vừa đảm bảo tìm được nghiệm đầy đủ với số bước thử ít hơn so với Backtracking thuần túy.
 
 \subsection{Ví dụ minh họa}
 
-Xét một bảng $4 \times 4$, giả sử ô $(1,1)$ được cho sẵn giá trị $1$ và có ràng buộc $(1,1) < (1,2)$.
+Xét bài toán Futoshiki kích thước $3 \times 3$ với dữ liệu đầu vào như sau (intput1):
 
-Quá trình suy diễn diễn ra như sau:
+\textbf{Grid:}
+\[
+\begin{bmatrix}
+0 & 2 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0
+\end{bmatrix}
+\]
+
+\textbf{Ràng buộc ngang:}
+\begin{itemize}
+    \item $(1,1) < (1,2)$
+\end{itemize}
+
+\textbf{Ràng buộc dọc:}
+\begin{itemize}
+    \item $(1,2) > (2,2)$
+    \item $(2,1) > (3,1)$
+\end{itemize}
+
+\textbf{Bước 1: Khởi tạo KB và Domain}
+
+\begin{itemize}
+    \item Từ dữ kiện ban đầu: \texttt{Given(1,2,2)} $\Rightarrow$ \texttt{Val(1,2,2)}
+    \item Domain ban đầu:
+    \[
+    (1,2) = \{2\}, \quad \text{các ô còn lại} = \{1,2,3\}
+    \]
+\end{itemize}
+
+\textbf{Bước 2: Forward Chaining}
+
+Từ \texttt{Val(1,2,2)}, suy ra:
+
+\begin{itemize}
+    \item Loại bỏ $2$ khỏi hàng 1: $(1,1),(1,3)$ không thể là $2$
+    \item Loại bỏ $2$ khỏi cột 2: $(2,2),(3,2)$ không thể là $2$
+\end{itemize}
+
+Xét ràng buộc $(1,1) < (1,2)$ với $(1,2) = 2$:
+\begin{itemize}
+    \item $(1,1) < 2 \Rightarrow (1,1) = 1$
+\end{itemize}
+
+Suy ra:
+\[
+\texttt{Val(1,1,1)}
+\]
+
+Tiếp tục Forward Chaining:
+\begin{itemize}
+    \item Loại $1$ khỏi hàng 1 và cột 1
+\end{itemize}
+
+Sau một số bước suy diễn, domain được thu hẹp nhưng vẫn chưa xác định hết các ô.
+
+\textbf{Bước 3: Áp dụng MRV}
+
+Xét các ô chưa xác định, chọn ô có domain nhỏ nhất. Ví dụ:
+\begin{itemize}
+    \item Giả sử ô $(2,2)$ còn domain $\{1,3\}$ (nhỏ nhất)
+\end{itemize}
+
+Chọn ô $(2,2)$ để thử giá trị.
+
+\textbf{Bước 4: Backtracking + Forward Chaining}
+
+\begin{itemize}
+    \item Thử $(2,2) = 1$:
+    \begin{itemize}
+        \item Thêm \texttt{Val(2,2,1)} vào KB
+        \item Chạy lại Forward Chaining
+        \item Nếu xảy ra mâu thuẫn $\rightarrow$ quay lui
+    \end{itemize}
+    
+    \item Nếu không hợp lệ, thử $(2,2) = 3$:
+    \begin{itemize}
+        \item Tiếp tục suy diễn và lan truyền ràng buộc
+    \end{itemize}
+\end{itemize}
+
+Quá trình này tiếp tục cho đến khi tất cả các ô đều được gán giá trị.
+
+\textbf{Nhận xét:}
+
+Ví dụ trên cho thấy:
+\begin{itemize}
+    \item Forward Chaining giúp xác định nhanh các ô như $(1,1)$ mà không cần thử.
+    \item MRV giúp chọn đúng ô ``khó'' để thử trước, giảm số nhánh cần duyệt.
+    \item Sự kết hợp hai phương pháp giúp giảm đáng kể không gian tìm kiếm so với Backtracking thuần túy.
+\end{itemize}
 
 \begin{itemize}
     \item Ban đầu, đưa các fact \texttt{Given(1,1,1)} và ràng buộc vào hàng đợi.
