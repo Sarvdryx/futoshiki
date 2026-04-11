@@ -205,7 +205,6 @@ def fc_solve(data, stop_check=None, enable_trace=True):
     global nodes_expanded
     nodes_expanded = 0
 
-    # 🔥 AUTO DISABLE TRACE
     if data.n >= 5:
         enable_trace = False
 

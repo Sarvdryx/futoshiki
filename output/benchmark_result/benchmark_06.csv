@@ -1,0 +1,6 @@
+input,method,runtime,memory,nodes_expanded,solved,timeout
+input_06.txt,Forward Chaining,0.08939069999996718,3.05,1,False,False
+input_06.txt,A* (Heuristic 1),300.00015520000034,1905.46,182217,False,True
+input_06.txt,A* (Heuristic 2),300.0014302999998,325.93,80879,False,True
+input_06.txt,Brute Force,300.00000550000004,0.15,2428877,False,True
+input_06.txt,Backtracking,314.85717829999976,10589.39,2237011,False,True

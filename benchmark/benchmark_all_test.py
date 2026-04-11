@@ -90,5 +90,7 @@ def benchmark_one(input_file):
             })
 
     df = pd.DataFrame(results)
-    df["memory_mb"] = df["memory"] / (1024 * 1024)
+    df["memory"] = df["memory"].apply(
+        lambda x: round(x / (1024 * 1024), 2) if x is not None else None
+    )
     return df

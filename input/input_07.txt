@@ -1,4 +1,5 @@
 7
+# empty grid and constraint, many solutions
 # Grid : N lines of N values separated by commas .
 # 0 = empty cell ; 1..N = pre - filled digit .
 0 , 0 , 0 , 0 , 0 , 0 , 0

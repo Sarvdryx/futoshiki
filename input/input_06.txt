@@ -1,4 +1,5 @@
 7
+# hard puzzle size 7x7
 # Grid: 7 lines of 7 values separated by commas.
 # 0 = empty cell; 1..N = pre-filled digit.
 0,0,0,0,0,0,0
