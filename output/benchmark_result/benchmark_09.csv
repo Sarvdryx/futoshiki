@@ -1,6 +1,6 @@
 input,method,runtime,memory,nodes_expanded,solved,timeout
-input_09.txt,Forward Chaining,0.18660839999938617,6.72,2,True,False
-input_09.txt,A* (Heuristic 1),0.06485930000053486,0.28,58,True,False
-input_09.txt,A* (Heuristic 2),0.3089568999985204,0.59,36,True,False
-input_09.txt,Brute Force,0.0034176999997725943,0.01,36,True,False
-input_09.txt,Backtracking,0.0011539999995875405,0.08,36,True,False
+input_09.txt,Forward Chaining,300.1501152000128,194.51,3145,False,True
+input_09.txt,A* (Heuristic 1),300.0024623999925,2834.59,66178,False,True
+input_09.txt,A* (Heuristic 2),300.00545540000894,204.55,4138,False,True
+input_09.txt,Brute Force,300.0000072999974,0.15,1151494,False,True
+input_09.txt,Backtracking,300.71939009999915,10602.58,1722995,False,True
