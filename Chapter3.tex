@@ -115,8 +115,12 @@ Tiếp tục Forward Chaining:
 \begin{itemize}
     \item Loại $1$ khỏi hàng 1 và cột 1
 \end{itemize}
+Suy ra:
+\[
+\texttt{Val(1,3,3)}
+\]
 
-Sau một số bước suy diễn, domain được thu hẹp nhưng vẫn chưa xác định hết các ô.
+Sau một số bước suy diễn, domain được thu hẹp nhưng vẫn tồn tại trường hợp chưa xác định hết các ô.
 
 \textbf{Bước 3: Áp dụng MRV}
 
@@ -145,46 +149,20 @@ Chọn ô $(2,2)$ để thử giá trị.
 
 Quá trình này tiếp tục cho đến khi tất cả các ô đều được gán giá trị.
 
-\subsection{Nhận xét}
-
-Forward Chaining giúp lan truyền ràng buộc rất nhanh và giảm đáng kể không gian tìm kiếm ban đầu. Tuy nhiên, do chỉ dựa vào suy diễn nên thuật toán có thể bị dừng sớm khi không còn luật nào áp dụng được.
-
-Vì vậy, việc kết hợp với Backtracking là cần thiết để đảm bảo tìm được nghiệm đầy đủ cho mọi test case.
-
 \subsection{Mã giả thuật toán}
 \begin{algorithm}[H]
 \footnotesize
 \caption{FC Solver cho Futoshiki}
-\KwIn{Dữ liệu bài toán $data$, hàm dừng $stop\_check$, cờ ghi log $enable\_trace$}
-\KwOut{Nghiệm $solution$ và thống kê $stats$}
-
-$nodes\_expanded \leftarrow 0$ \;
-
-\If{$data.n \ge 5$}{
-    $enable\_trace \leftarrow False$ \;
-}
-
-\If{$enable\_trace$}{
-    $trace \leftarrow []$ \;
-}
-\Else{
-    $trace \leftarrow \varnothing$ \;
-}
-
-Khởi tạo thời gian $time\_start$ \;
-Bắt đầu đo bộ nhớ \;
+\KwIn{Dữ liệu bài toán $data$}
+\KwOut{Nghiệm $solution$}
 
 $domain \leftarrow$ domain\_init($data$) \;
 $kb \leftarrow$ build\_kb($data$) \;
 
-$result \leftarrow$ backtrack($kb$, $domain$, $0$, $stop\_check$, $trace$, $enable\_trace$) \;
-
-Ghi nhận $time\_end$, bộ nhớ sử dụng \;
-
-$stats \leftarrow \{runtime, memory, nodes\_expanded, trace\}$ \;
+$result \leftarrow$ backtrack($kb$, $domain$) \;
 
 \If{$result = \varnothing$}{
-    \Return $(\varnothing, stats)$ \;
+    \Return $\varnothing$ \;
 }
 
 \For{mỗi ô $(i,j)$}{
@@ -192,22 +170,16 @@ $stats \leftarrow \{runtime, memory, nodes\_expanded, trace\}$ \;
     $data.grid[i-1][j-1] \leftarrow v$ \;
 }
 
-\Return $(data, stats)$ \;
+\Return $data$ \;
 \end{algorithm}
 
 \begin{algorithm}[H]
 \footnotesize
 \caption{Backtracking với FC + MRV}
-\KwIn{$kb$, $domain$, $depth$, $stop\_check$, $trace$, $enable\_trace$}
+\KwIn{$kb$, $domain$}
 \KwOut{Domain hoàn chỉnh hoặc $\varnothing$}
 
-\If{$stop\_check()$}{
-    \Return $\varnothing$ \;
-}
-
-$nodes\_expanded \leftarrow nodes\_expanded + 1$ \;
-
-$success \leftarrow$ propagate($kb$, $domain$, $depth$, $stop\_check$) \;
+$success \leftarrow$ propagate($kb$, $domain$) \;
 
 \If{NOT $success$}{
     \Return $\varnothing$ \;
@@ -230,17 +202,13 @@ $values \leftarrow$ các giá trị trong $domain(i,j)$ (đã sắp xếp) \;
 
 \For{mỗi $v \in values$}{
 
-    \If{$stop\_check()$}{
-        \Return $\varnothing$ \;
-    }
-
     $new\_kb \leftarrow$ copy($kb$) \;
     $new\_domain \leftarrow$ deepcopy($domain$) \;
 
     $new\_domain(i,j) \leftarrow \{v\}$ \;
     Thêm $Val(i,j,v)$ vào $new\_kb$ \;
 
-    $result \leftarrow$ backtrack($new\_kb$, $new\_domain$, $depth+1$, $stop\_check$, $trace$, $enable\_trace$) \;
+    $result \leftarrow$ backtrack($new\_kb$, $new\_domain$) \;
 
     \If{$result \neq \varnothing$}{
         \Return $result$ \;
@@ -274,16 +242,12 @@ $best\_size \leftarrow \infty$ \;
 \begin{algorithm}[H]
 \footnotesize
 \caption{Propagation (Forward Checking)}
-\KwIn{$kb$, $domain$, $depth$, $stop\_check$}
+\KwIn{$kb$, $domain$}
 \KwOut{True nếu thành công, False nếu mâu thuẫn}
 
 $step \leftarrow 0$ \;
 
 \While{True}{
-
-    \If{$stop\_check()$}{
-        \Return False \;
-    }
 
     $old\_domain \leftarrow$ deepcopy($domain$) \;
 
@@ -299,17 +263,19 @@ $step \leftarrow 0$ \;
         \Return False \;
     }
 
-    Thêm các singleton vào $kb$ \;
-
-    \If{$domain = old\_domain$ và không có singleton mới}{
+    \If{$domain = old\_domain$ và không có fact Val mới}{
         \textbf{break}
     }
-
-    $step \leftarrow step + 1$ \;
 }
 
 \Return True \;
 \end{algorithm}
+
+\subsection{Nhận xét}
+
+Forward Chaining giúp lan truyền ràng buộc rất nhanh và giảm đáng kể không gian tìm kiếm ban đầu. Tuy nhiên, do chỉ dựa vào suy diễn nên thuật toán có thể bị dừng sớm khi không còn luật nào áp dụng được.
+
+Vì vậy, việc kết hợp với Backtracking là cần thiết để đảm bảo tìm được nghiệm đầy đủ cho mọi test case.
 
 
 \section{Backward Chaining}
@@ -425,6 +391,8 @@ Do đó, giá trị $2$ bị loại khỏi domain của ô $(1,1)$.
 Ví dụ trên cho thấy Backward Chaining có thể nhanh chóng loại bỏ các giá trị không hợp lệ bằng cách truy ngược từ mục tiêu. Thay vì thử gán trực tiếp, thuật toán chỉ cần kiểm tra các luật liên quan trong KB, giúp giảm đáng kể số phép thử trong quá trình giải bài toán.
 
 \textbf{Kết luận:} Ô $(1,2)$ không thể nhận giá trị $1$.
+
+\subsection{Mã giả thuật toán}
 
 \subsection{Nhận xét}
 
