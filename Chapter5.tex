@@ -31,26 +31,549 @@ Kết quả:
 So sánh và đánh giá:
 
 \section{Input-06}
-Mô tả testcase:
-Kết quả:
-So sánh và đánh giá:
+\paragraph{Mô tả testcase:}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.5]
+
+% ===== Vẽ các ô (rời nhau) =====
+\foreach \x in {0,2,4,6,8,10,12} {
+    \foreach \y in {0,2,4,6,8,10,12} {
+        \draw (\x,\y) rectangle ++(1,1);
+    }
+}
+
+% ===== Điền số =====
+\node at (4.5,10.5) {1};
+
+\node at (0.5,8.5) {1};
+\node at (6.5,8.5) {6};
+
+\node at (8.5,4.5) {5};
+
+\node at (0.5,2.5) {5};
+\node at (6.5,2.5) {1};
+\node at (8.5,2.5) {6};
+
+\node at (4.5,0.5) {7};
+\node at (6.5,0.5) {3};
+
+% ===== Horizontal constraints =====
+\node at (6.5+1,12.5) {$>$};
+
+\node at (8.5+1,10.5) {$<$};
+\node at (10.5+1,10.5) {$<$};
+
+\node at (2.5+1,6.5) {$<$};
+
+\node at (2.5+1,4.5) {$<$};
+
+\node at (10.5+1,2.5) {$>$};
+
+% ===== Vertical constraints =====
+\node at (0.5,11.5) {$\wedge$};
+\node at (6.5,11.5) {$\wedge$};
+
+\node at (8.5,5.5) {$\wedge$};
+
+\node at (2.5,3.5) {$\wedge$};
+
+\node at (0.5,1.5) {$\wedge$};
+\node at (8.5,1.5) {$\wedge$};
+\node at (10.5,1.5) {$\wedge$};
+
+\end{tikzpicture}
+\end{center}
+
+\paragraph{Kết quả:}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Input} & \textbf{Method} & \textbf{Runtime (s)} & \textbf{Memory (MB)} & \textbf{Nodes} & \textbf{Solved} & \textbf{Timeout} \\
+\hline
+input\_06.txt & Forward Chaining & 0.09 & 3.05 & 1 & False & False \\
+input\_06.txt & A* (Heuristic 1) & 300.00 & 1905.46 & 182,217 & False & True \\
+input\_06.txt & A* (Heuristic 2) & 300.00 & 325.93 & 80,879 & False & True \\
+input\_06.txt & Brute Force & 300.00 & 0.15 & 2,428,877 & False & True \\
+input\_06.txt & Backtracking & 314.86 & 10589.39 & 2,237,011 & False & True \\
+\hline
+\end{tabular}
+\caption{Kết quả benchmark cho input\_06.txt}
+\end{table}
+
+\paragraph{So sánh và đánh giá:}
+
+\begin{itemize}
+
+\item \textbf{Forward Chaining:}
+\begin{itemize}
+    \item Thời gian chạy rất thấp (0.089s), bộ nhớ sử dụng nhỏ (3.05MB), và chỉ mở rộng 1 node.
+    \item Tuy nhiên, không tìm được nghiệm.
+    \item Điều này cho thấy phương pháp suy luận tiến chỉ thực hiện propagation ràng buộc nhưng không có cơ chế tìm kiếm, do đó thất bại khi bài toán yêu cầu khám phá không gian trạng thái sâu hơn.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 1:}
+\begin{itemize}
+    \item Bị timeout sau 300s, mở rộng 182,217 nodes và sử dụng bộ nhớ lớn (1905.46MB).
+    \item Hiệu năng kém cho thấy heuristic 1 không đủ mạnh để định hướng tìm kiếm, dẫn đến việc mở rộng nhiều trạng thái không cần thiết.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 2:}
+\begin{itemize}
+    \item Cũng bị timeout, nhưng số node mở rộng giảm đáng kể (80,879 nodes) và bộ nhớ thấp hơn (325.93MB) so với Heuristic 1.
+    \item Điều này chứng tỏ heuristic 2 có khả năng định hướng tốt hơn, giúp giảm không gian tìm kiếm.
+    \item Tuy nhiên, vẫn chưa đủ hiệu quả để giải bài toán trong giới hạn thời gian.
+\end{itemize}
+
+\item \textbf{Brute Force:}
+\begin{itemize}
+    \item Mở rộng số lượng node cực lớn (2,428,877 nodes) và bị timeout.
+    \item Bộ nhớ sử dụng thấp (0.15MB) do không lưu nhiều trạng thái.
+    \item Đây là phương pháp kém hiệu quả nhất về mặt thời gian do không có bất kỳ cơ chế cắt tỉa nào.
+\end{itemize}
+
+\item \textbf{Backtracking:}
+\begin{itemize}
+    \item Tương tự brute force nhưng có cải thiện nhẹ nhờ cắt tỉa một phần.
+    \item Tuy nhiên vẫn mở rộng hơn 2 triệu nodes và vượt quá thời gian giới hạn (314.86s).
+    \item Bộ nhớ rất cao (10589.39MB), cho thấy chi phí lưu trạng thái và recursion stack lớn.
+\end{itemize}
+
+\end{itemize}
+
+\textbf{So sánh tổng thể:}
+
+\begin{itemize}
+    \item Về \textbf{khả năng giải bài}: không có phương pháp nào tìm được nghiệm trong thời gian giới hạn.
+    
+    \item Về \textbf{hiệu quả heuristic}:
+    \begin{itemize}
+        \item Heuristic 2 tốt hơn Heuristic 1 (ít node hơn, ít bộ nhớ hơn).
+        \item Tuy nhiên cả hai vẫn chưa đủ mạnh để xử lý testcase khó này.
+    \end{itemize}
+    
+    \item Về \textbf{chi phí tìm kiếm}:
+    \begin{itemize}
+        \item Brute Force và Backtracking có chi phí rất lớn (hàng triệu node).
+        \item A* giúp giảm đáng kể số node nhưng vẫn chưa đủ.
+    \end{itemize}
+    
+    \item Về \textbf{suy luận ràng buộc}:
+    \begin{itemize}
+        \item Forward Chaining rất nhanh nhưng không đủ để giải bài toán khi thiếu bước tìm kiếm.
+    \end{itemize}
+
+\end{itemize}
 
 \section{Input-07}
-Mô tả testcase:
-Kết quả:
-So sánh và đánh giá:
+\textbf{Mô tả testcase:}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.5]
+
+% ===== Vẽ các ô (rời nhau) =====
+\foreach \x in {0,2,4,6,8,10,12} {
+    \foreach \y in {0,2,4,6,8,10,12} {
+        \draw (\x,\y) rectangle ++(1,1);
+    }
+}
+
+% ===== Không có số =====
+
+% ===== Không có ràng buộc ngang =====
+
+% ===== Không có ràng buộc dọc =====
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Kết quả:}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Input} & \textbf{Method} & \textbf{Runtime (s)} & \textbf{Memory (MB)} & \textbf{Nodes} & \textbf{Solved} & \textbf{Timeout} \\
+\hline
+input\_07.txt & Forward Chaining & 0.62 & 36.87 & 26 & True & False \\
+input\_07.txt & A* (Heuristic 1) & 300.00 & 2768.83 & 73,799 & False & True \\
+input\_07.txt & A* (Heuristic 2) & 1.28 & 1.51 & 102 & True & False \\
+input\_07.txt & Brute Force & 0.01 & 0.01 & 132 & True & False \\
+input\_07.txt & Backtracking & 0.00 & 0.39 & 132 & True & False \\
+\hline
+\end{tabular}
+\caption{Kết quả benchmark cho input\_07.txt}
+\end{table}
+
+\paragraph{So sánh và đánh giá:}
+
+\begin{itemize}
+
+\item \textbf{Forward Chaining:}
+\begin{itemize}
+    \item Thời gian chạy thấp (0.62s), số node mở rộng rất ít (26 nodes).
+    \item Tìm được nghiệm thành công.
+    \item Mặc dù không có nhiều ràng buộc để suy luận, phương pháp vẫn hoạt động hiệu quả do bài toán không yêu cầu tìm kiếm sâu.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 1:}
+\begin{itemize}
+    \item Bị timeout sau 300s, mở rộng 73,799 nodes và tiêu tốn bộ nhớ lớn (2768.83MB).
+    \item Hiệu năng kém do heuristic không cung cấp thông tin hữu ích trong trường hợp không có ràng buộc, dẫn đến việc tìm kiếm gần như mù.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 2:}
+\begin{itemize}
+    \item Giải được bài toán trong thời gian ngắn (1.28s), mở rộng 102 nodes và sử dụng bộ nhớ rất thấp (1.51MB).
+    \item Hoạt động tốt hơn Heuristic 1 nhờ khả năng định hướng tìm kiếm hợp lý hơn, dù bài toán không có nhiều thông tin ràng buộc.
+\end{itemize}
+
+\item \textbf{Brute Force:}
+\begin{itemize}
+    \item Giải rất nhanh (0.01s) với 132 nodes.
+    \item Do bài toán có nhiều nghiệm, brute force dễ dàng tìm được một nghiệm mà không cần khám phá toàn bộ không gian.
+\end{itemize}
+
+\item \textbf{Backtracking:}
+\begin{itemize}
+    \item Là phương pháp nhanh nhất (0.0045s), với 132 nodes.
+    \item Hiệu quả cao nhờ dừng sớm khi tìm được nghiệm đầu tiên.
+\end{itemize}
+
+\end{itemize}
+
+\textbf{So sánh tổng thể:}
+
+\begin{itemize}
+    \item Về \textbf{khả năng giải bài}: hầu hết các phương pháp (trừ A* Heuristic 1) đều giải được nhanh chóng.
+    
+    \item Về \textbf{hiệu quả heuristic}:
+    \begin{itemize}
+        \item Heuristic 2 vượt trội so với Heuristic 1.
+        \item Heuristic 1 không phù hợp trong trường hợp thiếu ràng buộc.
+    \end{itemize}
+    
+    \item Về \textbf{chi phí tìm kiếm}:
+    \begin{itemize}
+        \item Brute Force và Backtracking có chi phí rất thấp do dừng sớm.
+        \item A* (H1) có chi phí rất cao do mở rộng nhiều node không cần thiết.
+    \end{itemize}
+    
+    \item Về \textbf{ảnh hưởng của ràng buộc}:
+    \begin{itemize}
+        \item Việc không có constraint khiến bài toán trở nên “dễ” theo nghĩa tìm nghiệm đầu tiên.
+        \item Tuy nhiên, heuristic trở nên kém hiệu quả do thiếu thông tin định hướng.
+    \end{itemize}
+
+\end{itemize}
 
 \section{Input-08}
-Mô tả testcase:
-Kết quả:
-So sánh và đánh giá:
+\paragraph{Mô tả testcase:}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.5]
+
+% ===== Vẽ các ô (rời nhau) =====
+\foreach \x in {0,2,4,6,8,10,12} {
+    \foreach \y in {0,2,4,6,8,10,12} {
+        \draw (\x,\y) rectangle ++(1,1);
+    }
+}
+
+% ===== Điền số =====
+\node at (4.5,10.5) {5};
+
+\node at (0.5,6.5) {4};
+\node at (10.5,6.5) {7};
+\node at (12.5,6.5) {2};
+
+\node at (10.5,2.5) {2};
+
+% ===== Dấu < (horizontal) =====
+\node at (5.5,12.5) {$<$};
+\node at (9.5,12.5) {$<$};
+
+\node at (5.5,10.5) {$<$};
+\node at (7.5,10.5) {$<$};
+
+\node at (9.5,8.5) {$<$};
+
+\node at (1.5,6.5) {$<$};
+
+\node at (5.5,4.5) {$<$};
+\node at (7.5,4.5) {$<$};
+
+\node at (1.5,0.5) {$>$};
+
+% ===== Dấu ^ (vertical) =====
+\node at (6.5,11.5) {$\wedge$};
+
+\node at (0.5,9.5) {$\wedge$};
+\node at (12.5,9.5) {$\vee$};
+
+\node at (0.5,7.5) {$\wedge$};
+\node at (6.5,7.5) {$\wedge$};
+\node at (12.5,7.5) {$\vee$};
+
+\node at (0.5,5.5) {$\vee$};
+
+\node at (8.5,3.5) {$\vee$};
+\node at (10.5,3.5) {$\wedge$};
+\node at (12.5,3.5) {$\vee$};
+
+\node at (4.5,1.5) {$\vee$};
+\node at (6.5,1.5) {$\wedge$};
+\node at (12.5,1.5) {$\vee$};
+
+\end{tikzpicture}
+\end{center}
+
+\paragraph{Kết quả:}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Input} & \textbf{Method} & \textbf{Runtime (s)} & \textbf{Memory (MB)} & \textbf{Nodes} & \textbf{Solved} & \textbf{Timeout} \\
+\hline
+input\_08.txt & Forward Chaining & 35.35 & 37.11 & 1,090 & True & False \\
+input\_08.txt & A* (Heuristic 1) & 300.00 & 1747.70 & 271,563 & False & True \\
+input\_08.txt & A* (Heuristic 2) & 5.71 & 2.60 & 132 & True & False \\
+input\_08.txt & Brute Force & 300.00 & 0.15 & 2,253,684 & False & True \\
+input\_08.txt & Backtracking & 5.11 & 479.79 & 101,260 & True & False \\
+\hline
+\end{tabular}
+\caption{Kết quả benchmark cho input\_08.txt}
+\end{table}
+
+\paragraph{So sánh và đánh giá:}
+\begin{itemize}
+\item \textbf{Forward Chaining:}
+\begin{itemize}
+    \item Giải được bài toán trong 35.35s với 1,090 nodes.
+    \item Bộ nhớ sử dụng ở mức trung bình (37.11MB).
+    \item Cho thấy suy luận ràng buộc có hiệu quả nhất định trong việc giảm không gian tìm kiếm, nhưng vẫn cần thời gian đáng kể để hội tụ.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 1:}
+\begin{itemize}
+    \item Bị timeout sau 300s, mở rộng 271,563 nodes và tiêu tốn bộ nhớ lớn (1747.7MB).
+    \item Heuristic 1 không đủ mạnh để định hướng tìm kiếm hiệu quả, dẫn đến việc khám phá nhiều trạng thái không cần thiết.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 2:}
+\begin{itemize}
+    \item Giải thành công trong thời gian ngắn (5.71s), chỉ mở rộng 132 nodes.
+    \item Bộ nhớ sử dụng rất thấp (2.6MB).
+    \item Đây là phương pháp hiệu quả nhất trong testcase này, cho thấy heuristic 2 có khả năng định hướng tìm kiếm rất tốt.
+\end{itemize}
+
+\item \textbf{Brute Force:}
+\begin{itemize}
+    \item Bị timeout với số node mở rộng rất lớn (2,253,684 nodes).
+    \item Không có cơ chế cắt tỉa nên không phù hợp với bài toán có không gian tìm kiếm lớn.
+\end{itemize}
+
+\item \textbf{Backtracking:}
+\begin{itemize}
+    \item Giải được bài toán trong 5.11s, nhưng mở rộng tới 101,260 nodes.
+    \item Bộ nhớ khá cao (479.79MB).
+    \item Mặc dù có cắt tỉa, nhưng vẫn kém hiệu quả hơn A* với heuristic tốt.
+\end{itemize}
+
+\end{itemize}
+
+\textbf{So sánh tổng thể:}
+
+\begin{itemize}
+    \item Về \textbf{khả năng giải bài}:
+    \begin{itemize}
+        \item Forward Chaining, A* (Heuristic 2) và Backtracking đều giải được bài toán.
+        \item A* (Heuristic 1) và Brute Force thất bại do timeout.
+    \end{itemize}
+    
+    \item Về \textbf{hiệu quả heuristic}:
+    \begin{itemize}
+        \item Heuristic 2 vượt trội so với Heuristic 1 cả về thời gian, bộ nhớ và số node mở rộng.
+        \item Điều này cho thấy tầm quan trọng của việc thiết kế heuristic phù hợp.
+    \end{itemize}
+    
+    \item Về \textbf{chi phí tìm kiếm}:
+    \begin{itemize}
+        \item A* (Heuristic 2) có chi phí thấp nhất (132 nodes).
+        \item Backtracking tốn nhiều node hơn nhưng vẫn trong giới hạn chấp nhận được.
+        \item Brute Force là kém nhất do không có cắt tỉa.
+    \end{itemize}
+    
+    \item Về \textbf{vai trò của ràng buộc}:
+    \begin{itemize}
+        \item Các constraint giúp giảm đáng kể không gian tìm kiếm, cho phép các thuật toán như A* (H2) hoạt động hiệu quả.
+    \end{itemize}
+
+\end{itemize}
 
 \section{Input-09}
-Mô tả testcase:
-Kết quả:
-So sánh và đánh giá:
+\textbf{Mô tả testcase:}
 
-\section{Input-10}
-Mô tả testcase:
-Kết quả:
-So sánh và đánh giá:
+\begin{center}
+\begin{tikzpicture}[scale=0.4]
+
+% ===== Vẽ các ô (rời nhau) =====
+\foreach \x in {0,2,4,6,8,10,12,14,16} {
+    \foreach \y in {0,2,4,6,8,10,12,14,16} {
+        \draw (\x,\y) rectangle ++(1,1);
+    }
+}
+
+% ===== Điền số =====
+\node at (12.5,16.5) {7};
+\node at (16.5,16.5) {5};
+
+\node at (0.5,12.5) {7};
+
+\node at (14.5,10.5) {3};
+\node at (16.5,10.5) {7};
+
+\node at (8.5,8.5) {8};
+\node at (10.5,8.5) {5};
+\node at (16.5,8.5) {3};
+
+\node at (2.5,6.5) {2};
+
+\node at (14.5,4.5) {5};
+
+% ===== Horizontal constraints =====
+\node at (0.5+1,16.5) {$>$};
+\node at (6.5+1,16.5) {$>$};
+\node at (10.5+1,16.5) {$>$};
+
+\node at (0.5+1,14.5) {$<$};
+\node at (6.5+1,14.5) {$<$};
+\node at (14.5+1,14.5) {$<$};
+
+\node at (8.5+1,12.5) {$>$};
+\node at (12.5+1,12.5) {$>$};
+
+\node at (0.5+1,10.5) {$>$};
+\node at (2.5+1,10.5) {$>$};
+\node at (8.5+1,10.5) {$<$};
+\node at (10.5+1,10.5) {$>$};
+
+\node at (0.5+1,8.5) {$>$};
+
+\node at (14.5+1,6.5) {$<$};
+
+\node at (0.5+1,4.5) {$<$};
+\node at (2.5+1,4.5) {$<$};
+\node at (10.5+1,4.5) {$>$};
+
+\node at (4.5+1,2.5) {$<$};
+
+\node at (4.5+1,0.5) {$<$};
+\node at (12.5+1,0.5) {$<$};
+
+% ===== Vertical constraints =====
+\node at (0.5,15.5) {$\wedge$};
+\node at (14.5,15.5) {$\wedge$};
+
+\node at (0.5,13.5) {$\wedge$};
+\node at (10.5,13.5) {$\vee$};
+\node at (14.5,13.5) {$\wedge$};
+
+\node at (0.5,11.5) {$\vee$};
+\node at (2.5,11.5) {$\wedge$};
+\node at (4.5,11.5) {$\wedge$};
+\node at (8.5,11.5) {$\wedge$};
+
+\node at (2.5,9.5) {$\wedge$};
+\node at (12.5,9.5) {$\vee$};
+
+\node at (10.5,5.5) {$\vee$};
+\node at (12.5,5.5) {$\wedge$};
+\node at (14.5,5.5) {$\vee$};
+
+\node at (10.5,1.5) {$\vee$};
+\node at (14.5,1.5) {$\vee$};
+\node at (16.5,1.5) {$\vee$};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Kết quả:}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Input} & \textbf{Method} & \textbf{Runtime (s)} & \textbf{Memory (MB)} & \textbf{Nodes} & \textbf{Solved} & \textbf{Timeout} \\
+\hline
+input\_09.txt & Forward Chaining & 300.15 & 194.51 & 3,145 & False & True \\
+input\_09.txt & A* (Heuristic 1) & 300.00 & 2834.59 & 66,178 & False & True \\
+input\_09.txt & A* (Heuristic 2) & 300.01 & 204.55 & 4,138 & False & True \\
+input\_09.txt & Brute Force & 300.00 & 0.15 & 1,151,494 & False & True \\
+input\_09.txt & Backtracking & 300.72 & 10602.58 & 1,722,995 & False & True \\
+\hline
+\end{tabular}
+\caption{Kết quả benchmark cho input\_09.txt}
+\end{table}
+
+\textbf{So sánh và đánh giá:}
+\begin{itemize}
+\item \textbf{Forward Chaining:}
+\begin{itemize}
+    \item Bị timeout sau 300s, chỉ mở rộng 3,145 nodes.
+    \item Bộ nhớ sử dụng ở mức trung bình (194.51MB).
+    \item Mặc dù số node mở rộng không lớn, phương pháp không thể hội tụ do thiếu cơ chế tìm kiếm sâu, chỉ dựa vào suy luận ràng buộc.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 1:}
+\begin{itemize}
+    \item Bị timeout với 66,178 nodes và bộ nhớ rất cao (2834.59MB).
+    \item Heuristic 1 không đủ mạnh để định hướng tìm kiếm trong không gian trạng thái lớn, dẫn đến việc mở rộng nhiều trạng thái không cần thiết.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 2:}
+\begin{itemize}
+    \item Cũng bị timeout, nhưng chỉ mở rộng 4,138 nodes và sử dụng bộ nhớ thấp hơn (204.55MB).
+    \item So với Heuristic 1, hiệu quả tốt hơn rõ rệt, cho thấy heuristic 2 có khả năng định hướng tốt hơn.
+    \item Tuy nhiên, vẫn chưa đủ mạnh để giải bài toán trong thời gian giới hạn.
+\end{itemize}
+
+\item \textbf{Brute Force:}
+\begin{itemize}
+    \item Mở rộng hơn 1.15 triệu nodes và bị timeout.
+    \item Bộ nhớ thấp (0.15MB) do không lưu trữ nhiều trạng thái.
+    \item Đây là phương pháp kém hiệu quả nhất về thời gian do không có cơ chế cắt tỉa.
+\end{itemize}
+
+\item \textbf{Backtracking:}
+\begin{itemize}
+    \item Mở rộng hơn 1.7 triệu nodes và vượt thời gian giới hạn (300.72s).
+    \item Bộ nhớ rất cao (10602.58MB), phản ánh chi phí lớn trong việc duy trì trạng thái và recursion.
+    \item Có cải thiện so với brute force nhờ cắt tỉa, nhưng vẫn không đủ hiệu quả.
+\end{itemize}
+
+\end{itemize}
+
+\textbf{So sánh tổng thể ( input\_09.txt và input\_10.txt ):}
+
+\begin{itemize}
+    \item Về \textbf{khả năng giải bài}: tất cả các phương pháp đều thất bại (timeout), cho thấy đây là testcase cực khó.
+    
+    \item Về \textbf{hiệu quả heuristic}:
+    \begin{itemize}
+        \item Heuristic 2 tốt hơn Heuristic 1 (ít node hơn, ít bộ nhớ hơn).
+        \item Tuy nhiên, cả hai đều không đủ mạnh để giải bài toán.
+    \end{itemize}
+    
+    \item Về \textbf{chi phí tìm kiếm}:
+    \begin{itemize}
+        \item Brute Force và Backtracking có chi phí cực lớn (hàng triệu node).
+        \item A* giúp giảm đáng kể số node, đặc biệt với Heuristic 2.
+    \end{itemize}
+    
+    \item Về \textbf{vai trò của ràng buộc}:
+    \begin{itemize}
+        \item Mặc dù có nhiều ràng buộc, chúng vẫn chưa đủ mạnh để thu hẹp không gian tìm kiếm một cách hiệu quả.
+    \end{itemize}
+
+\end{itemize}
+
