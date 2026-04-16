@@ -429,3 +429,81 @@ Trong bối cảnh bài toán Futoshiki, mỗi trạng thái tương ứng với
 Thuật toán sử dụng một \textbf{priority queue} (hàng đợi ưu tiên) để luôn mở rộng trạng thái có giá trị $f(n)$ nhỏ nhất trước. Đồng thời, một tập \textbf{visited} được sử dụng để tránh việc lặp lại các trạng thái đã xét.
 
 A* đảm bảo tìm được nghiệm tối ưu nếu hàm heuristic thỏa mãn tính chất admissible. Tuy nhiên, hiệu quả của thuật toán phụ thuộc rất lớn vào chất lượng của heuristic được sử dụng. 
+
+\subsection{Tổng quan áp dụng A* cho bài toán Futoshiki}
+
+Điểm quan trọng của việc áp dụng A* trong bài toán Futoshiki không nằm ở cấu trúc thuật toán, mà ở cách sử dụng heuristic để định hướng quá trình điền giá trị vào bảng.
+
+Tại mỗi trạng thái, thuật toán thực hiện các bước sau:
+
+\begin{itemize}
+    \item \textbf{Chọn biến cần gán:} 
+    Một ô chưa được điền sẽ được chọn để mở rộng. Việc lựa chọn này có thể dựa trên các tiêu chí như thứ tự duyệt hoặc ưu tiên các ô có nhiều ràng buộc.
+
+    \item \textbf{Sinh các trạng thái con:}
+    Với mỗi giá trị hợp lệ trong domain của ô đã chọn, tạo ra một trạng thái mới bằng cách gán giá trị đó vào ô tương ứng.
+
+    \item \textbf{Áp dụng ràng buộc:}
+    Sau khi gán, các ràng buộc được cập nhật (có thể kết hợp AC-3 hoặc forward checking) để thu hẹp domain của các ô còn lại.
+
+    \item \textbf{Đánh giá heuristic:}
+    Với mỗi trạng thái mới, giá trị $h(n)$ được tính toán dựa trên:
+    \begin{itemize}
+        \item Số lượng ràng buộc chưa thỏa mãn (Heuristic1), hoặc
+        \item Mức độ chưa xác định của các biến thông qua domain (Heuristic2)
+    \end{itemize}
+
+    \item \textbf{Tính giá trị hàm đánh giá:}
+    \[
+    f(n) = g(n) + h(n)
+    \]
+    Trong đó:
+    \begin{itemize}
+        \item $g(n)$ là số bước đã gán (số ô đã điền thêm)
+        \item $h(n)$ phản ánh mức độ còn lại cần hoàn thành
+    \end{itemize}
+
+    \item \textbf{Ưu tiên mở rộng:}
+    Trạng thái có giá trị $f(n)$ nhỏ nhất sẽ được chọn để tiếp tục mở rộng.
+\end{itemize}
+
+Nhờ việc sử dụng heuristic, A* không duyệt tất cả các khả năng như brute-force mà tập trung vào các trạng thái “hứa hẹn” hơn, tức là các trạng thái:
+\begin{itemize}
+    \item Có ít vi phạm ràng buộc, hoặc
+    \item Có domain đã được thu hẹp đáng kể
+\end{itemize}
+
+Điều này giúp giảm đáng kể số lượng trạng thái cần xét và tăng hiệu quả giải bài toán.
+\subsection{Mã giả}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black, title=A*solver]
+\begin{verbatim}
+Function AStarSolver(data, heuristic, is_valid):
+    start_time ← current_time()
+    initialize memory tracking
+    initial_state ← init_state(data)
+    PQ ← empty priority queue
+    push (f = 0, initial_state) into PQ
+    steps ← 0
+
+    While PQ is not empty:
+        state ← pop state with smallest f from PQ
+        steps ← steps + 1
+        If state is goal:
+            return solution
+        For each child in expand(state, data, is_valid):
+            g ← cost(child)              # số ô đã điền
+            h ← heuristic(child, data)   # ước lượng còn lại
+            f ← g + h
+            push (f, child) into PQ
+    return failure
+
+Function cost(state):
+    count ← 0
+    For each row in state.grid:
+        For each cell in row:
+            If cell not 0:
+                count ← count + 1
+    Return count
+\end{verbatim}
+\end{tcolorbox}

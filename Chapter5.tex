@@ -31,7 +31,14 @@ Kết quả:
 So sánh và đánh giá:
 
 \section{Input-06}
-\paragraph{Mô tả testcase:}
+\textbf{Mô tả testcase:}
+Testcase Futoshiki kích thước $7 \times 7$ với độ khó cao. Số lượng ô được điền ban đầu (clues) rất ít, dẫn đến không gian tìm kiếm lớn.
+
+Các ràng buộc (constraints) tồn tại ở cả chiều ngang và dọc nhưng có mật độ trung bình và phân bố không đồng đều, làm giảm hiệu quả cắt tỉa.
+
+Đặc biệt, testcase này được thiết kế \textbf{không có nghiệm hợp lệ}, nhằm đánh giá khả năng của các thuật toán trong việc phát hiện bài toán vô nghiệm (unsatisfiable problem).
+
+Do đó, bài toán không chỉ yêu cầu chiến lược tìm kiếm hiệu quả mà còn cần cơ chế phát hiện mâu thuẫn sớm để tránh bùng nổ không gian trạng thái.
 
 \begin{center}
 \begin{tikzpicture}[scale=0.5]
@@ -85,7 +92,7 @@ So sánh và đánh giá:
 \end{tikzpicture}
 \end{center}
 
-\paragraph{Kết quả:}
+\textbf{Kết quả:}
 \begin{table}[h]
 \centering
 \begin{tabular}{|l|l|c|c|c|c|c|}
@@ -105,39 +112,40 @@ input\_06.txt & Backtracking & 314.86 & 10589.39 & 2,237,011 & False & True \\
 \paragraph{So sánh và đánh giá:}
 
 \begin{itemize}
-
 \item \textbf{Forward Chaining:}
 \begin{itemize}
     \item Thời gian chạy rất thấp (0.089s), bộ nhớ sử dụng nhỏ (3.05MB), và chỉ mở rộng 1 node.
-    \item Tuy nhiên, không tìm được nghiệm.
-    \item Điều này cho thấy phương pháp suy luận tiến chỉ thực hiện propagation ràng buộc nhưng không có cơ chế tìm kiếm, do đó thất bại khi bài toán yêu cầu khám phá không gian trạng thái sâu hơn.
+    \item Không tìm được nghiệm.
+    \item Đây là kết quả hợp lý vì bài toán không có nghiệm. Phương pháp suy luận tiến đã nhanh chóng phát hiện mâu thuẫn thông qua constraint propagation mà không cần tìm kiếm sâu.
+    \item Điều này cho thấy Forward Chaining hiệu quả trong việc phát hiện sớm trạng thái vô nghiệm.
 \end{itemize}
 
 \item \textbf{A* với Heuristic 1:}
 \begin{itemize}
     \item Bị timeout sau 300s, mở rộng 182,217 nodes và sử dụng bộ nhớ lớn (1905.46MB).
-    \item Hiệu năng kém cho thấy heuristic 1 không đủ mạnh để định hướng tìm kiếm, dẫn đến việc mở rộng nhiều trạng thái không cần thiết.
+    \item Không phát hiện được bài toán vô nghiệm trong thời gian cho phép.
+    \item Điều này cho thấy heuristic 1 không đủ mạnh để dẫn dắt tìm kiếm tới các vùng mâu thuẫn sớm, dẫn đến việc khám phá không gian trạng thái một cách kém hiệu quả.
 \end{itemize}
 
 \item \textbf{A* với Heuristic 2:}
 \begin{itemize}
-    \item Cũng bị timeout, nhưng số node mở rộng giảm đáng kể (80,879 nodes) và bộ nhớ thấp hơn (325.93MB) so với Heuristic 1.
-    \item Điều này chứng tỏ heuristic 2 có khả năng định hướng tốt hơn, giúp giảm không gian tìm kiếm.
-    \item Tuy nhiên, vẫn chưa đủ hiệu quả để giải bài toán trong giới hạn thời gian.
+    \item Cũng bị timeout, nhưng số node mở rộng giảm đáng kể (80,879 nodes) và bộ nhớ thấp hơn (325.93MB).
+    \item Hiệu quả hơn heuristic 1 trong việc thu hẹp không gian tìm kiếm.
+    \item Tuy nhiên vẫn chưa đủ để phát hiện bài toán vô nghiệm trong giới hạn thời gian.
 \end{itemize}
 
 \item \textbf{Brute Force:}
 \begin{itemize}
     \item Mở rộng số lượng node cực lớn (2,428,877 nodes) và bị timeout.
-    \item Bộ nhớ sử dụng thấp (0.15MB) do không lưu nhiều trạng thái.
-    \item Đây là phương pháp kém hiệu quả nhất về mặt thời gian do không có bất kỳ cơ chế cắt tỉa nào.
+    \item Không thể kết luận vô nghiệm do phải duyệt gần như toàn bộ không gian trạng thái.
+    \item Đây là hạn chế cố hữu của phương pháp không có cắt tỉa.
 \end{itemize}
 
 \item \textbf{Backtracking:}
 \begin{itemize}
-    \item Tương tự brute force nhưng có cải thiện nhẹ nhờ cắt tỉa một phần.
-    \item Tuy nhiên vẫn mở rộng hơn 2 triệu nodes và vượt quá thời gian giới hạn (314.86s).
-    \item Bộ nhớ rất cao (10589.39MB), cho thấy chi phí lưu trạng thái và recursion stack lớn.
+    \item Mở rộng hơn 2 triệu nodes và vượt quá thời gian giới hạn (314.86s).
+    \item Có cải thiện so với brute force nhờ cắt tỉa, nhưng vẫn không đủ để kết luận vô nghiệm trong thời gian hợp lý.
+    \item Bộ nhớ rất cao do chi phí lưu trạng thái và đệ quy.
 \end{itemize}
 
 \end{itemize}
@@ -145,29 +153,39 @@ input\_06.txt & Backtracking & 314.86 & 10589.39 & 2,237,011 & False & True \\
 \textbf{So sánh tổng thể:}
 
 \begin{itemize}
-    \item Về \textbf{khả năng giải bài}: không có phương pháp nào tìm được nghiệm trong thời gian giới hạn.
+    \item Về \textbf{khả năng phát hiện vô nghiệm}:
+    \begin{itemize}
+        \item Forward Chaining là phương pháp duy nhất phát hiện nhanh trạng thái vô nghiệm nhờ cơ chế suy luận ràng buộc.
+        \item Các phương pháp còn lại không thể kết luận trong thời gian giới hạn.
+    \end{itemize}
     
     \item Về \textbf{hiệu quả heuristic}:
     \begin{itemize}
         \item Heuristic 2 tốt hơn Heuristic 1 (ít node hơn, ít bộ nhớ hơn).
-        \item Tuy nhiên cả hai vẫn chưa đủ mạnh để xử lý testcase khó này.
+        \item Tuy nhiên cả hai đều chưa đủ mạnh để dẫn dắt tìm kiếm tới mâu thuẫn sớm.
     \end{itemize}
     
     \item Về \textbf{chi phí tìm kiếm}:
     \begin{itemize}
-        \item Brute Force và Backtracking có chi phí rất lớn (hàng triệu node).
-        \item A* giúp giảm đáng kể số node nhưng vẫn chưa đủ.
+        \item Brute Force và Backtracking có chi phí rất lớn do phải duyệt gần như toàn bộ không gian trạng thái.
+        \item A* giúp giảm đáng kể số node, nhưng vẫn không đủ để xử lý bài toán vô nghiệm hiệu quả.
     \end{itemize}
     
-    \item Về \textbf{suy luận ràng buộc}:
+    \item Về \textbf{vai trò của suy luận ràng buộc}:
     \begin{itemize}
-        \item Forward Chaining rất nhanh nhưng không đủ để giải bài toán khi thiếu bước tìm kiếm.
+        \item Forward Chaining cho thấy ưu thế rõ rệt trong việc phát hiện mâu thuẫn sớm.
+        \item Điều này nhấn mạnh tầm quan trọng của constraint propagation trong các bài toán CSP vô nghiệm.
     \end{itemize}
-
 \end{itemize}
 
 \section{Input-07}
 \textbf{Mô tả testcase:}
+
+Testcase Futoshiki kích thước $7 \times 7$ không chứa bất kỳ giá trị khởi tạo (clue) hay ràng buộc bất đẳng thức (constraint) nào. Do đó, toàn bộ lưới ban đầu hoàn toàn trống và không có thông tin định hướng lời giải.
+
+Trong trường hợp này, bài toán có không gian nghiệm rất lớn với nhiều nghiệm hợp lệ, do không bị giới hạn bởi các điều kiện ràng buộc. Việc thiếu constraint khiến các kỹ thuật suy luận không phát huy hiệu quả, trong khi các thuật toán tìm kiếm có thể nhanh chóng tìm được một nghiệm bất kỳ.
+
+Testcase này chủ yếu dùng để đánh giá khả năng tìm nghiệm đầu tiên và hiệu năng cơ bản của các thuật toán trong môi trường không có thông tin định hướng.
 
 \begin{center}
 \begin{tikzpicture}[scale=0.5]
@@ -270,6 +288,11 @@ input\_07.txt & Backtracking & 0.00 & 0.39 & 132 & True & False \\
 \section{Input-08}
 \paragraph{Mô tả testcase:}
 
+Testcase Futoshiki kích thước $7 \times 7$ với số lượng ô được điền ban đầu (clue) ít và phân bố rải rác trên lưới. 
+
+Hệ thống ràng buộc (constraints) tồn tại ở cả chiều ngang và dọc với mật độ trung bình và phân bố không đồng đều, tạo ra một số vùng có khả năng suy luận tốt trong khi các vùng khác gần như không có thông tin định hướng.
+
+Sự kết hợp này dẫn đến không gian tìm kiếm lớn nhưng vẫn có khả năng cắt tỉa cục bộ, khiến bài toán có độ khó cao và phù hợp để đánh giá hiệu quả của heuristic trong việc định hướng tìm kiếm.
 \begin{center}
 \begin{tikzpicture}[scale=0.5]
 
@@ -413,7 +436,13 @@ input\_08.txt & Backtracking & 5.11 & 479.79 & 101,260 & True & False \\
 
 \section{Input-09}
 \textbf{Mô tả testcase:}
+\textbf{Mô tả testcase:}
 
+Testcase Futoshiki kích thước $9 \times 9$ với số lượng clue ít và phân bố không đồng đều trên lưới. 
+
+Hệ thống ràng buộc (constraints) tương đối dày và xuất hiện ở cả chiều ngang và dọc, tuy nhiên vẫn tồn tại nhiều vùng thiếu thông tin định hướng.
+
+Sự kết hợp giữa kích thước lớn, số lượng clue hạn chế và constraint chưa đủ mạnh để ràng buộc toàn cục khiến không gian tìm kiếm rất lớn, làm tăng đáng kể độ khó của bài toán.
 \begin{center}
 \begin{tikzpicture}[scale=0.4]
 
@@ -553,7 +582,7 @@ input\_09.txt & Backtracking & 300.72 & 10602.58 & 1,722,995 & False & True \\
 
 \end{itemize}
 
-\textbf{So sánh tổng thể ( input\_09.txt và input\_10.txt ):}
+\textbf{So sánh tổng thể:}
 
 \begin{itemize}
     \item Về \textbf{khả năng giải bài}: tất cả các phương pháp đều thất bại (timeout), cho thấy đây là testcase cực khó.
@@ -577,3 +606,184 @@ input\_09.txt & Backtracking & 300.72 & 10602.58 & 1,722,995 & False & True \\
 
 \end{itemize}
 
+\section{Input-10}
+\textbf{Mô tả testcase:}
+
+Testcase Futoshiki kích thước $9 \times 9$ với độ khó rất cao. Số lượng giá trị khởi tạo (clues) rất ít và phân bố rời rạc, làm tăng đáng kể không gian tìm kiếm.
+
+Hệ thống ràng buộc bất đẳng thức xuất hiện dày đặc ở cả hai chiều ngang và dọc, với mức độ phân bố tương đối phức tạp và không đồng đều. Điều này tạo ra nhiều phụ thuộc cục bộ nhưng không đủ mạnh để dẫn dắt trực tiếp đến nghiệm.
+
+Sự kết hợp giữa \textbf{ít clue} và \textbf{nhiều constraint phức tạp} khiến bài toán vừa có không gian trạng thái lớn, vừa khó cắt tỉa hiệu quả. Do đó, testcase này được đánh giá là \textbf{rất khó}, đòi hỏi heuristic mạnh và chiến lược tìm kiếm tối ưu.
+\begin{center}
+\begin{tikzpicture}[scale=0.4]
+
+% ===== Vẽ các ô =====
+\foreach \x in {0,2,4,6,8,10,12,14,16} {
+    \foreach \y in {0,2,4,6,8,10,12,14,16} {
+        \draw (\x,\y) rectangle ++(1,1);
+    }
+}
+
+% ===== Điền số =====
+\node at (16.5,16.5) {4};
+
+\node at (10.5,14.5) {6};
+
+\node at (8.5,6.5) {5};
+
+\node at (12.5,4.5) {2};
+
+\node at (14.5,0.5) {4};
+
+% ===== Horizontal constraints =====
+% Row 1
+\node at (0.5+1,16.5) {$>$};
+\node at (2.5+1,16.5) {$<$};
+\node at (12.5+1,16.5) {$>$};
+\node at (14.5+1,16.5) {$>$};
+
+% Row 2
+\node at (12.5+1,14.5) {$<$};
+\node at (14.5+1,14.5) {$<$};
+
+% Row 3
+\node at (2.5+1,12.5) {$>$};
+\node at (12.5+1,12.5) {$>$};
+
+% Row 4
+\node at (0.5+1,10.5) {$<$};
+\node at (4.5+1,10.5) {$>$};
+\node at (8.5+1,10.5) {$<$};
+\node at (12.5+1,10.5) {$<$};
+
+% Row 5
+\node at (0.5+1,8.5) {$>$};
+\node at (4.5+1,8.5) {$<$};
+
+% Row 6
+\node at (2.5+1,6.5) {$<$};
+\node at (4.5+1,6.5) {$<$};
+\node at (8.5+1,6.5) {$<$};
+\node at (10.5+1,6.5) {$<$};
+\node at (14.5+1,6.5) {$<$};
+
+% Row 7
+\node at (8.5+1,4.5) {$<$};
+\node at (14.5+1,4.5) {$<$};
+
+% Row 8
+\node at (6.5+1,2.5) {$<$};
+\node at (10.5+1,2.5) {$>$};
+\node at (12.5+1,2.5) {$>$};
+
+% Row 9
+\node at (0.5+1,0.5) {$<$};
+\node at (2.5+1,0.5) {$<$};
+\node at (6.5+1,0.5) {$<$};
+\node at (14.5+1,0.5) {$>$};
+
+% ===== Vertical constraints =====
+\node at (0.5,15.5) {$\wedge$};
+\node at (2.5,15.5) {$\vee$};
+\node at (4.5,15.5) {$\wedge$};
+\node at (8.5,15.5) {$\vee$};
+\node at (10.5,15.5) {$\vee$};
+
+\node at (6.5,13.5) {$\vee$};
+
+\node at (0.5,11.5) {$\wedge$};
+\node at (2.5,11.5) {$\vee$};
+\node at (4.5,11.5) {$\vee$};
+\node at (12.5,11.5) {$\wedge$};
+\node at (16.5,11.5) {$\wedge$};
+
+\node at (4.5,9.5) {$\wedge$};
+\node at (12.5,9.5) {$\wedge$};
+\node at (14.5,9.5) {$\wedge$};
+
+\node at (8.5,7.5) {$\vee$};
+
+\node at (0.5,3.5) {$\wedge$};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Kết quả:}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Input} & \textbf{Method} & \textbf{Runtime (s)} & \textbf{Memory (MB)} & \textbf{Nodes} & \textbf{Solved} & \textbf{Timeout} \\
+\hline
+input\_10.txt & Forward Chaining & 300.22 & 208.27 & 3,060 & False & True \\
+input\_10.txt & A* (Heuristic 1) & 300.00 & 2668.90 & 76,518 & False & True \\
+input\_10.txt & A* (Heuristic 2) & 300.01 & 213.28 & 4,959 & False & True \\
+input\_10.txt & Brute Force & 300.00 & 0.15 & 1,156,082 & False & True \\
+input\_10.txt & Backtracking & 310.14 & 10589.40 & 1,720,780 & False & True \\
+\hline
+\end{tabular}
+\caption{Kết quả benchmark cho input\_10.txt}
+\end{table}
+
+\paragraph{So sánh và đánh giá:}
+\begin{itemize}
+\item \textbf{Forward Chaining:}
+\begin{itemize}
+    \item Bị timeout sau 300s, mở rộng 3,060 nodes với mức bộ nhớ trung bình (208.27MB).
+    \item Không tìm được nghiệm.
+    \item Mặc dù có khả năng suy luận ràng buộc, phương pháp này không đủ mạnh để phát hiện mâu thuẫn hoặc hội tụ đến nghiệm trong không gian tìm kiếm lớn.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 1:}
+\begin{itemize}
+    \item Bị timeout, mở rộng 76,518 nodes và tiêu tốn bộ nhớ rất lớn (2668.90MB).
+    \item Hiệu năng kém cho thấy heuristic 1 không cung cấp đủ thông tin để định hướng tìm kiếm hiệu quả, dẫn đến việc mở rộng nhiều trạng thái không cần thiết.
+\end{itemize}
+
+\item \textbf{A* với Heuristic 2:}
+\begin{itemize}
+    \item Cũng bị timeout, nhưng chỉ mở rộng 4,959 nodes và sử dụng bộ nhớ thấp hơn đáng kể (213.28MB).
+    \item So với heuristic 1, hiệu quả tốt hơn rõ rệt trong việc giảm không gian tìm kiếm.
+    \item Tuy nhiên vẫn chưa đủ mạnh để giải bài toán trong giới hạn thời gian.
+\end{itemize}
+
+\item \textbf{Brute Force:}
+\begin{itemize}
+    \item Mở rộng hơn 1.15 triệu nodes và bị timeout.
+    \item Bộ nhớ thấp (0.15MB) nhưng thời gian rất lớn do không có cơ chế cắt tỉa.
+    \item Không phù hợp với bài toán có không gian trạng thái lớn như testcase này.
+\end{itemize}
+
+\item \textbf{Backtracking:}
+\begin{itemize}
+    \item Mở rộng hơn 1.72 triệu nodes và vượt thời gian giới hạn (310.14s).
+    \item Bộ nhớ rất cao (10589.40MB), phản ánh chi phí lớn trong việc lưu trạng thái và đệ quy.
+    \item Có cải thiện so với brute force nhờ cắt tỉa, nhưng vẫn không đủ hiệu quả.
+\end{itemize}
+
+\end{itemize}
+
+\textbf{So sánh tổng thể:}
+
+\begin{itemize}
+    \item Về \textbf{khả năng giải bài}: tất cả các phương pháp đều không tìm được nghiệm trong thời gian giới hạn, cho thấy đây là một testcase \textbf{rất khó} (có thể có không gian nghiệm cực lớn hoặc tiềm ẩn mâu thuẫn).
+
+    \item Về \textbf{hiệu quả heuristic}:
+    \begin{itemize}
+        \item Heuristic 2 vượt trội so với Heuristic 1 (ít node hơn, ít bộ nhớ hơn).
+        \item Tuy nhiên cả hai vẫn chưa đủ mạnh để dẫn dắt tìm kiếm đến nghiệm hoặc phát hiện mâu thuẫn sớm.
+    \end{itemize}
+
+    \item Về \textbf{chi phí tìm kiếm}:
+    \begin{itemize}
+        \item Brute Force và Backtracking có chi phí cực lớn (hàng triệu node), thể hiện rõ hiện tượng bùng nổ không gian trạng thái.
+        \item A* giúp giảm đáng kể số node, đặc biệt với heuristic 2, nhưng vẫn chưa đủ để giải quyết bài toán.
+    \end{itemize}
+
+    \item Về \textbf{vai trò của ràng buộc}:
+    \begin{itemize}
+        \item Mặc dù có nhiều ràng buộc, chúng chưa đủ mạnh hoặc chưa được khai thác hiệu quả để cắt tỉa không gian tìm kiếm.
+        \item Điều này cho thấy việc kết hợp heuristic mạnh với kỹ thuật suy luận ràng buộc sâu hơn là cần thiết.
+    \end{itemize}
+
+\end{itemize}

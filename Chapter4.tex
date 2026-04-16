@@ -6,53 +6,6 @@
 
 \chapter{Phân tích heuristic (A*)}
 
-\section{Tổng quan áp dụng A* cho bài toán Futoshiki}
-
-Điểm quan trọng của việc áp dụng A* trong bài toán Futoshiki không nằm ở cấu trúc thuật toán, mà ở cách sử dụng heuristic để định hướng quá trình điền giá trị vào bảng.
-
-Tại mỗi trạng thái, thuật toán thực hiện các bước sau:
-
-\begin{itemize}
-    \item \textbf{Chọn biến cần gán:} 
-    Một ô chưa được điền sẽ được chọn để mở rộng. Việc lựa chọn này có thể dựa trên các tiêu chí như thứ tự duyệt hoặc ưu tiên các ô có nhiều ràng buộc.
-
-    \item \textbf{Sinh các trạng thái con:}
-    Với mỗi giá trị hợp lệ trong domain của ô đã chọn, tạo ra một trạng thái mới bằng cách gán giá trị đó vào ô tương ứng.
-
-    \item \textbf{Áp dụng ràng buộc:}
-    Sau khi gán, các ràng buộc được cập nhật (có thể kết hợp AC-3 hoặc forward checking) để thu hẹp domain của các ô còn lại.
-
-    \item \textbf{Đánh giá heuristic:}
-    Với mỗi trạng thái mới, giá trị $h(n)$ được tính toán dựa trên:
-    \begin{itemize}
-        \item Số lượng ràng buộc chưa thỏa mãn (Heuristic1), hoặc
-        \item Mức độ chưa xác định của các biến thông qua domain (Heuristic2)
-    \end{itemize}
-
-    \item \textbf{Tính giá trị hàm đánh giá:}
-    \[
-    f(n) = g(n) + h(n)
-    \]
-    Trong đó:
-    \begin{itemize}
-        \item $g(n)$ là số bước đã gán (số ô đã điền thêm)
-        \item $h(n)$ phản ánh mức độ còn lại cần hoàn thành
-    \end{itemize}
-
-    \item \textbf{Ưu tiên mở rộng:}
-    Trạng thái có giá trị $f(n)$ nhỏ nhất sẽ được chọn để tiếp tục mở rộng.
-\end{itemize}
-
-Nhờ việc sử dụng heuristic, A* không duyệt tất cả các khả năng như brute-force mà tập trung vào các trạng thái “hứa hẹn” hơn, tức là các trạng thái:
-\begin{itemize}
-    \item Có ít vi phạm ràng buộc, hoặc
-    \item Có domain đã được thu hẹp đáng kể
-\end{itemize}
-
-Điều này giúp giảm đáng kể số lượng trạng thái cần xét và tăng hiệu quả giải bài toán.
-
-% ==================================================
-
 \section{Heuristic 1 -- Đếm vi phạm ràng buộc}
 
 \subsection{Ý tưởng}
