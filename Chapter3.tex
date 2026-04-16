@@ -97,11 +97,11 @@ Xét bài toán Futoshiki kích thước $3 \times 3$ với dữ liệu đầu v
 Từ \texttt{Val(1,2,2)}, suy ra:
 
 \begin{itemize}
-    \item Loại bỏ $2$ khỏi hàng 1: $(1,1),(1,3)$ không thể là $2$
-    \item Loại bỏ $2$ khỏi cột 2: $(2,2),(3,2)$ không thể là $2$
+    \item Loại bỏ $2$ khỏi hàng 1: $(1,1),(1,3) \neq 2$
+    \item Loại bỏ $2$ khỏi cột 2: $(2,2),(3,2) \neq 2$
 \end{itemize}
 
-Xét ràng buộc $(1,1) < (1,2)$ với $(1,2) = 2$:
+Xét ràng buộc $(1,1) < (1,2)$ với $(1,2)=2$:
 \begin{itemize}
     \item $(1,1) < 2 \Rightarrow (1,1) = 1$
 \end{itemize}
@@ -111,43 +111,54 @@ Suy ra:
 \texttt{Val(1,1,1)}
 \]
 
-Tiếp tục Forward Chaining:
+\textbf{Bước 3: Lan truyền ràng buộc}
+
+Từ $(1,1)=1$:
 \begin{itemize}
-    \item Loại $1$ khỏi hàng 1 và cột 1
+    \item Loại $1$ khỏi cột 1: $(2,1),(3,1) \neq 1$
 \end{itemize}
+
+Xét ràng buộc $(2,1) > (3,1)$:
+\begin{itemize}
+    \item Domain ban đầu: $\{2,3\}$ cho cả hai ô
+    \item Điều kiện $>$ $\Rightarrow (2,1)=3,\ (3,1)=2$
+\end{itemize}
+
 Suy ra:
 \[
-\texttt{Val(1,3,3)}
+\texttt{Val(2,1,3)}, \quad \texttt{Val(3,1,2)}
 \]
 
-Sau một số bước suy diễn, domain được thu hẹp nhưng vẫn tồn tại trường hợp chưa xác định hết các ô.
+\textbf{Bước 4: Tiếp tục suy luận}
 
-\textbf{Bước 3: Áp dụng MRV}
-
-Xét các ô chưa xác định, chọn ô có domain nhỏ nhất. Ví dụ:
+Xét ràng buộc $(1,2) > (2,2)$ với $(1,2)=2$:
 \begin{itemize}
-    \item Giả sử ô $(2,2)$ còn domain $\{1,3\}$ (nhỏ nhất)
+    \item $(2,2) < 2 \Rightarrow (2,2)=1$
 \end{itemize}
 
-Chọn ô $(2,2)$ để thử giá trị.
+Suy ra:
+\[
+\texttt{Val(2,2,1)}
+\]
 
-\textbf{Bước 4: Backtracking + Forward Chaining}
+\textbf{Bước 5: Hoàn thiện bảng}
+
+Tiếp tục áp dụng ràng buộc hàng/cột:
 
 \begin{itemize}
-    \item Thử $(2,2) = 1$:
-    \begin{itemize}
-        \item Thêm \texttt{Val(2,2,1)} vào KB
-        \item Chạy lại Forward Chaining
-        \item Nếu xảy ra mâu thuẫn $\rightarrow$ quay lui
-    \end{itemize}
-    
-    \item Nếu không hợp lệ, thử $(2,2) = 3$:
-    \begin{itemize}
-        \item Tiếp tục suy diễn và lan truyền ràng buộc
-    \end{itemize}
+    \item Hàng 1: đã có $\{1,2\}$ $\Rightarrow (1,3)=3$
+    \item Hàng 2: $\{3,1\}$ $\Rightarrow (2,3)=2$
+    \item Hàng 3: $\{2,\_\}$ và cột 2 còn $\{3\}$ $\Rightarrow (3,2)=3,\ (3,3)=1$
 \end{itemize}
 
-Quá trình này tiếp tục cho đến khi tất cả các ô đều được gán giá trị.
+\textbf{Kết quả cuối cùng:}
+\[
+\begin{bmatrix}
+1 & 2 & 3 \\
+3 & 1 & 2 \\
+2 & 3 & 1
+\end{bmatrix}
+\]
 
 \subsection{Mã giả thuật toán}
 \begin{algorithm}[H]
