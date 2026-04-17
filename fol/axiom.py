@@ -45,7 +45,7 @@ def cnf_A3(N):
 
 
 # A4: LessH
-def cnf_A4(N, lessH_list):
+def cnf_A5(N, lessH_list):
     clauses = []
     for (i,j) in lessH_list:
         for v1 in range(1, N+1):
@@ -62,7 +62,7 @@ def cnf_A4(N, lessH_list):
 
 
 # A5: Given
-def cnf_A5(givens):
+def cnf_A9(givens):
     clauses = []
     for (i,j,v) in givens:
         clauses.append(
@@ -73,7 +73,8 @@ def cnf_A5(givens):
         )
     return And(*clauses)
 
-def cnf_A6(N):
+# column constraint
+def cnf_A4(N):
     clauses = []
     for j in range(1, N+1):
         for v in range(1, N+1):
@@ -85,7 +86,7 @@ def cnf_A6(N):
     return And(*clauses)
 
 # Ràng buộc Lớn hơn Ngang (i, j) > (i, j+1)
-def cnf_A7(N, greaterH_list):
+def cnf_A6(N, greaterH_list):
     clauses = []
     for (i, j) in greaterH_list:
         for v1 in range(1, N + 1):
@@ -96,7 +97,7 @@ def cnf_A7(N, greaterH_list):
     return And(*clauses)
 
 # Ràng buộc Nhỏ hơn Dọc (i, j) < (i+1, j)
-def cnf_A8(N, lessV_list):
+def cnf_A7(N, lessV_list):
     clauses = []
     for (i, j) in lessV_list:
         for v1 in range(1, N + 1):
@@ -107,7 +108,7 @@ def cnf_A8(N, lessV_list):
     return And(*clauses)
 
 # Ràng buộc Lớn hơn Dọc (i, j) > (i+1, j)
-def cnf_A9(N, greaterV_list):
+def cnf_A8(N, greaterV_list):
     clauses = []
     for (i, j) in greaterV_list:
         for v1 in range(1, N + 1):

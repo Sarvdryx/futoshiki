@@ -13,7 +13,7 @@ def generate_kb(board_data):
     kb.add(cnf_A1(N))  # Mỗi ô có ít nhất 1 giá trị
     kb.add(cnf_A2(N))  # Mỗi ô có tối đa 1 giá trị
     kb.add(cnf_A3(N))  # Không trùng hàng (bạn có thể viết thêm cnf_A3_col cho cột)
-    kb.add(cnf_A6(N))
+    kb.add(cnf_A4(N))
 
     # 2. Thêm các giá trị đã cho sẵn trên bàn cờ
     givens = []
@@ -27,7 +27,7 @@ def generate_kb(board_data):
                 kb.add(Given(i + 1, j + 1, val)) 
     
     if givens:
-        kb.add(cnf_A5(givens)) # Áp dụng tiên đề Given => Val
+        kb.add(cnf_A9(givens)) # Áp dụng tiên đề Given => Val
 
     # --- 3. Ràng buộc ngang (Horizontal) ---
     lh, gh = [], []
@@ -41,8 +41,8 @@ def generate_kb(board_data):
                 gh.append((i+1, j+1))
                 kb.add(GreaterH(i+1, j+1))
     
-    if lh: kb.add(cnf_A4(N, lh)) # cnf_A4 chính là cnf_LessH
-    if gh: kb.add(cnf_A7(N, gh))
+    if lh: kb.add(cnf_A5(N, lh)) # cnf_A4 chính là cnf_LessH
+    if gh: kb.add(cnf_A6(N, gh))
 
     # --- 4. Ràng buộc dọc (Vertical) ---
     lv, gv = [], []
@@ -56,7 +56,7 @@ def generate_kb(board_data):
                 gv.append((i+1, j+1))
                 kb.add(GreaterV(i+1, j+1))
                 
-    if lv: kb.add(cnf_A8(N, lv))
-    if gv: kb.add(cnf_A9(N, gv))
+    if lv: kb.add(cnf_A7(N, lv))
+    if gv: kb.add(cnf_A8(N, gv))
 
     return kb
