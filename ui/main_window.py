@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet("""
             QWidget {
+                background-color: #020617;
                 font-family: Arial;
                 font-size: 14pt;
             }
@@ -50,6 +51,13 @@ class MainWindow(QMainWindow):
 
             QComboBox {
                 padding: 2pt;
+            }
+                           
+            QComboBox QAbstractItemView {
+                background-color: #1e293b;
+                color: #f8fafc;
+                selection-background-color: #38bdf8;
+                selection-color: #020617;
             }
         """)
 
