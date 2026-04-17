@@ -26,18 +26,24 @@ h(n) = \text{số ô vi phạm}
 
 \subsection{Mã giả}
 
-\begin{tcolorbox}[colback=gray!5, colframe=black, title=Heuristic1]
-\begin{verbatim}
-FUNCTION Heuristic1(state, data):
-    count ← 0
+\begin{algorithm}[H]
+\footnotesize
+\caption{Heuristic1 cho bài toán}
 
-    FOR mỗi ô (i, j):
-        IF tồn tại ràng buộc vi phạm:
-            count ← count + 1
+\KwIn{Trạng thái $state$, dữ liệu bài toán $data$}
+\KwOut{Giá trị heuristic $h$}
 
-    RETURN count
-\end{verbatim}
-\end{tcolorbox}
+$count \leftarrow 0$ \;
+
+\For{mỗi ô $(i, j)$}{
+    \If{tồn tại ràng buộc bị vi phạm tại $(i, j)$}{
+        $count \leftarrow count + 1$ \;
+    }
+}
+
+\Return $count$ \;
+
+\end{algorithm}
 
 \subsection{Chứng minh admissible}
 
@@ -130,22 +136,30 @@ h(n) =
 
 \subsection{Mã giả}
 
-\begin{tcolorbox}[colback=gray!5, colframe=black, title=Heuristic2]
-\begin{verbatim}
-FUNCTION Heuristic2(state, data):
-    domains ← copy(state.domains)
+\begin{algorithm}[H]
+\footnotesize
+\caption{Heuristic2 cho bài toán}
 
-    IF AC3(domains) == FALSE:
-        RETURN INFINITY
+\KwIn{Trạng thái $state$, dữ liệu bài toán $data$}
+\KwOut{Giá trị heuristic $h$}
 
-    count ← 0
-    FOR mỗi domain d:
-        IF size(d) > 1:
-            count ← count + 1
+$domains \leftarrow copy(state.domains)$ \;
 
-    RETURN count
-\end{verbatim}
-\end{tcolorbox}
+\If{$AC3(domains) = \text{FALSE}$}{
+    \Return $\infty$ \;
+}
+
+$count \leftarrow 0$ \;
+
+\For{mỗi miền giá trị $d \in domains$}{
+    \If{$|d| > 1$}{
+        $count \leftarrow count + 1$ \;
+    }
+}
+
+\Return $count$ \;
+
+\end{algorithm}
 
 \subsection{Chứng minh admissible}
 

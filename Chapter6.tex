@@ -5,3 +5,26 @@
   {Phần~\thechapter}{0pt}{\raggedright}
 
 \chapter{So sánh và đánh giá}
+
+Từ những kết quả phân tích và thực nghiệm trên bài toán Futoshiki, nhóm rút ra các kết luận sau:
+
+\begin{itemize}
+
+    \item \textbf{Tính hiệu quả của biểu diễn FOL:}  
+    Việc sử dụng Logic vị từ bậc nhất (FOL) cung cấp một khung lý thuyết vững chắc để mô hình hóa đầy đủ và chính xác các luật chơi cũng như ràng buộc của Futoshiki. Việc chuyển đổi sang dạng horn clauses là bước đệm quan trọng để áp dụng các thuật toán suy diễn logic một cách tự động.
+
+    \item \textbf{Sức mạnh của suy luận kết hợp tìm kiếm:}  
+    Forward Chaining thể hiện hiệu quả cao trong việc phát hiện sớm các mâu thuẫn và thu hẹp miền giá trị, đặc biệt hữu ích đối với các bài toán vô nghiệm.  
+    Thuật toán A* với Heuristic 2 (kết hợp AC-3 và thông tin miền giá trị) cho thấy hiệu năng vượt trội trong các bài toán khó. Mặc dù chi phí tính toán cho mỗi bước cao hơn và không đảm bảo tính admissible, nhưng khả năng định hướng tìm kiếm tốt giúp giảm đáng kể số lượng trạng thái cần mở rộng, từ đó rút ngắn tổng thời gian giải bài.
+
+    \item \textbf{Vai trò của Heuristic và Cắt tỉa:}  
+    Thực nghiệm cho thấy việc thiết kế heuristic hiệu quả (như Heuristic 2) kết hợp với các kỹ thuật cắt tỉa (MRV trong Backtracking, AC-3) là yếu tố then chốt để giải quyết các bài toán có không gian trạng thái lớn.  
+    Ngược lại, các phương pháp tìm kiếm mù như Brute Force chỉ phù hợp với các testcase rất nhỏ và không khả thi đối với các bài toán thực tế phức tạp.
+
+    \item \textbf{Hạn chế và hướng phát triển:}  
+    Khi kích thước bảng tăng lên đến $9 \times 9$, các thuật toán hiện tại bắt đầu gặp hạn chế về thời gian thực thi. Trong tương lai, cần nghiên cứu các kỹ thuật suy diễn ràng buộc sâu hơn hoặc kết hợp với các phương pháp tối ưu hóa nâng cao để cải thiện hiệu năng trên các bài toán lớn.
+
+\end{itemize}
+
+\textbf{Tổng kết:}  
+Đồ án đã thực hiện thành công việc kết hợp giữa lý thuyết logic và các thuật toán tìm kiếm hiện đại để giải quyết bài toán Futoshiki một cách hệ thống. Qua đó, khẳng định tầm quan trọng của việc lựa chọn chiến lược suy diễn và heuristic phù hợp cho từng loại bài toán cụ thể.

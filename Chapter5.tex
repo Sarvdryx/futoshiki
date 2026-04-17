@@ -5,6 +5,7 @@
   {Phần~\thechapter}{0pt}{\raggedright}
 
 \chapter{Kết quả thực nghiệm}
+Để đảm bảo hiệu năng, quá trình chạy benchmark được trang bị cơ chế \textit{timeout}, tự động dừng quá trình tìm kiếm nếu vượt quá thời gian cho phép, từ đó tránh việc tiêu tốn tài nguyên không cần thiết.
 \section{Input-01}
 \textbf{Mô tả testcase:}
 Testcase Futoshiki kích thước $3 \times 3$ với độ khó thấp. Số lượng ô được điền ban đầu (clues) rất ít (chỉ 1 ô), tạo ra không gian tìm kiếm vừa phải.
@@ -635,8 +636,8 @@ input\_05.txt & Backtracking & 0.17 & 14.66 & 3,693 & True & False \\
 \begin{itemize}
     \item Thời gian chạy 0.25s, bộ nhớ tối thiểu (0.62MB), mở rộng 37 nodes.
     \item Tìm được nghiệm thành công.
-    \item A* Heuristic 2 là tuyệt vời, nhanh gấp 96 lần so với Forward Chaining, gấp 15 lần so với Heuristic 1. Mở rộng chỉ 37 nodes cho thấy heuristic này rất chính xác.
-    \item Thú vị là số node mở rộng bằng với Input-04, cho thấy heuristic 2 tìm được đường dẫn tối ưu ngay lập tức.
+    \item A* Heuristic 2 nhanh gấp 96 lần so với Forward Chaining, gấp 15 lần so với Heuristic 1. Mở rộng chỉ 37 nodes cho thấy heuristic này rất chính xác.
+    \item Điều đặc biệt là số node mở rộng bằng với Input-04, cho thấy heuristic 2 tìm được đường dẫn tối ưu ngay lập tức.
 \end{itemize}
 
 \item \textbf{Brute Force:}

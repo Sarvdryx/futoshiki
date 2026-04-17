@@ -131,6 +131,8 @@
 \pretocmd{\subsection}{\Needspace{2\baselineskip}}{}{}
 \pretocmd{\chapter}{\Needspace{8\baselineskip}}{}{}
 
+\renewcommand{\algorithmcfname}{Thuật toán}
+\renewcommand{\listalgorithmcfname}{Danh sách thuật toán}
 \usepackage{tcolorbox}
 \begin{document}
 % -------------------------------
@@ -157,15 +159,20 @@
 \setcounter{page}{1}
 \pagestyle{fancy}
 
-\clearpage
-\phantomsection
-\addcontentsline{toc}{chapter}{Danh sách hình vẽ}
-\listoffigures
+% \clearpage
+% \phantomsection
+% \addcontentsline{toc}{chapter}{Danh sách hình vẽ}
+% \listoffigures
 
 \clearpage
 \phantomsection
 \addcontentsline{toc}{chapter}{Danh sách bảng}
 \listoftables
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Danh sách thuật toán}
+\listofalgorithms
 
 \include{Chapter1}
 \include{Chapter2}
@@ -173,8 +180,8 @@
 \include{Chapter4}
 \include{Chapter5}
 \include{Chapter6}
+\include{Chapter7}
 
-\include{Chapter8}
 
 % -------------------------------
 % Tài liệu tham khảo
