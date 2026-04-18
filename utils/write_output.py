@@ -26,9 +26,9 @@ def write_output_file(data, file_path):
                 line = ""
                 for c in range(n):
                     if v[r][c] == 1:
-                        line += "v"
-                    elif v[r][c] == -1:
                         line += "^"
+                    elif v[r][c] == -1:
+                        line += "v"
                     else:
                         line += " "
 
